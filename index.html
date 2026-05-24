@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>خطة 4 أيام - حسن المحمد | مؤقت ثابت + وضع ليلي</title>
+    <!-- خطوط عربية مميزة -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Amiri:wght@400;700&family=Reem+Kufi:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --white: #ffffff;
+            --text-dark: #1E2D28;
+            --text-light: #5F7468;
+            --shadow: 0 15px 50px rgba(0,0,0,0.08);
+            --bg: #EAF0EC;
+            --green: #4B7F63;
+            --blue: #5A7E8A;
+            --purple: #7A6B8A;
+            --gold: #B58D4F;
+            --card-bg: #ffffff;
+            --border-light: #E8F0EB;
+            --input-bg: white;
+            --timer-bg: rgba(255,255,255,0.96);
+            --timer-text: #1E2D28;
+            --btn-timer-bg: #4B7F63;
+            --btn-timer-hover: #3a634d;
+        }
+
+        body.dark {
+            --white: #1a1f1c;
+            --text-dark: #EDF2EF;
+            --text-light: #B1C5B9;
+            --bg: #121614;
+            --green: #6fa58a;
+            --blue: #789ba8;
+            --purple: #9b8dab;
+            --gold: #d3aa6b;
+            --card-bg: #232a26;
+            --border-light: #2e3a34;
+            --input-bg: #2a332e;
+            --timer-bg: #1f2622;
+            --timer-text: #EAF0EC;
+            --btn-timer-bg: #6fa58a;
+            --btn-timer-hover: #5c8b73;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg);
+            font-family: 'Amiri', serif;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: background 0.3s, color 0.2s;
+        }
+
+        .container {
+            max-width: 1500px;
+            width: 100%;
+        }
+
+        /* ===== الهيدر العلوي ===== */
+        .top-header {
+            background: linear-gradient(135deg, #1F3E2E, #3D6B56, #59886B);
+            border-radius: 40px;
+            padding: 40px 30px;
+            text-align: center;
+            color: white;
+            box-shadow: 0 10px 40px rgba(89, 136, 107, 0.3);
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+            border-bottom: 4px solid rgba(255,255,255,0.2);
+        }
+        body.dark .top-header {
+            background: linear-gradient(135deg, #0f2a1f, #264b3b, #3f6b55);
+        }
+        .top-header::before {
+            content: "📚";
+            position: absolute;
+            font-size: 200px;
+            opacity: 0.1;
+            left: -30px;
+            top: -50px;
+            transform: rotate(-20deg);
+        }
+        .top-header h1 {
+            font-family: 'Cairo', sans-serif;
+            font-size: 3.2rem;
+            font-weight: 900;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 15px rgba(0,0,0,0.2);
+            position: relative;
+            z-index: 2;
+        }
+        .top-header p {
+            font-family: 'Reem Kufi', sans-serif;
+            font-size: 1.5rem;
+            opacity: 0.9;
+            margin-top: 5px;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* ===== شريط الأدوات (الوضع الليلي والمؤقت الثابت) ===== */
+.sticky-toolbar {
+    position: relative;
+    z-index: 1000;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    padding: 12px 0;
+    margin-bottom: 25px;
+    background: transparent;
+}
+.container {
+    padding-top: 0;
+}
+        .tool-group {
+            display: flex;
+            gap: 12px;
+        }
+        .icon-btn {
+            background: var(--white);
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 10px 20px;
+            border-radius: 60px;
+            font-family: 'Cairo', sans-serif;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+            color: var(--text-dark);
+        }
+        .icon-btn:hover {
+            transform: scale(0.96);
+            background: var(--green);
+            color: white;
+        }
+        /* مؤقت بومودورو المتطور (تصميم أفقي أنيق بدون دوائر) */
+        .pomodoro-sticky {
+            background: var(--timer-bg);
+            backdrop-filter: blur(12px);
+            border-radius: 70px;
+            padding: 8px 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            border: 1px solid rgba(255,255,255,0.3);
+            transition: all 0.2s;
+        }
+        .timer-display {
+            background: #2C3E2F;
+            border-radius: 50px;
+            padding: 10px 24px;
+            color: #FFE6B0;
+            font-family: 'Cairo', monospace;
+            font-weight: 900;
+            font-size: 2rem;
+            letter-spacing: 4px;
+            min-width: 170px;
+            text-align: center;
+            box-shadow: inset 0 0 8px rgba(0,0,0,0.3), 0 5px 12px rgba(0,0,0,0.2);
+        }
+        body.dark .timer-display {
+            background: #1F2B24;
+            color: #FFD966;
+        }
+        .timer-actions {
+            display: flex;
+            gap: 12px;
+        }
+        .timer-btn {
+            background: var(--btn-timer-bg);
+            border: none;
+            color: white;
+            font-size: 1.1rem;
+            padding: 8px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            font-family: 'Cairo', sans-serif;
+            transition: 0.2s;
+        }
+        .timer-btn:hover {
+            background: var(--btn-timer-hover);
+            transform: scale(0.95);
+        }
+        .mode-badge {
+            font-size: 1rem;
+            background: #ffb347;
+            padding: 5px 18px;
+            border-radius: 40px;
+            color: #2d2b1f;
+            font-weight: bold;
+        }
+        body.dark .mode-badge {
+            background: #c97e2a;
+            color: #1f1a0c;
+        }
+
+        /* ===== البار العام المتطور ===== */
+        .dashboard-panel {
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(15px);
+            border-radius: 35px;
+            padding: 25px 30px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.05);
+            margin-bottom: 35px;
+            border: 1px solid rgba(255,255,255,0.5);
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 20px;
+        }
+        body.dark .dashboard-panel {
+            background: rgba(30,35,31,0.9);
+            border-color: #3e4c44;
+        }
+        .dash-label {
+            font-family: 'Cairo', sans-serif;
+            font-weight: 700;
+            font-size: 1.3rem;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .dash-track {
+            flex: 1;
+            height: 22px;
+            background: #DCE6E0;
+            border-radius: 40px;
+            overflow: hidden;
+            min-width: 200px;
+        }
+        .dash-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #4B7F63, #7DAF8E, #C4A682);
+            border-radius: 40px;
+            transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .dash-percent {
+            font-family: 'Cairo', sans-serif;
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: var(--text-dark);
+            min-width: 80px;
+            text-align: center;
+        }
+
+        /* ===== شبكة الكروت (التصميم الأساسي الجميل) ===== */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 30px;
+        }
+
+        /* ===== الكارت ===== */
+        .card {
+            background: var(--card-bg);
+            border-radius: 35px;
+            padding: 30px 25px;
+            box-shadow: var(--shadow);
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            border-top: 8px solid #aaa;
+            border-left: 6px solid #aaa;
+            animation: float 6s ease-in-out infinite;
+        }
+        body.dark .card {
+            box-shadow: 0 20px 35px rgba(0,0,0,0.4);
+        }
+        .card:hover { transform: translateY(-12px) scale(1.02); }
+        .card.day1 { border-top-color: var(--green); border-left-color: var(--green); }
+        .card.day2 { border-top-color: var(--blue); border-left-color: var(--blue); }
+        .card.day3 { border-top-color: var(--purple); border-left-color: var(--purple); }
+        .card.day4 { border-top-color: var(--gold); border-left-color: var(--gold); }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-6px); }
+        }
+
+        .card-header h2 {
+            font-family: 'Reem Kufi', sans-serif;
+            font-size: 2rem;
+            color: var(--text-dark);
+        }
+        .inner-progress-area {
+            margin-bottom: 18px;
+            background: #F0F4F2;
+            border-radius: 20px;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border: 1px solid var(--border-light);
+        }
+        body.dark .inner-progress-area {
+            background: #2a332e;
+        }
+        .inner-track {
+            flex: 1;
+            height: 10px;
+            background: #E0E8E3;
+            border-radius: 40px;
+            overflow: hidden;
+        }
+        .inner-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #4B7F63, #7DAF8E);
+            border-radius: 40px;
+            transition: width 0.6s ease;
+        }
+        .subject-badge {
+            display: inline-block;
+            background: #E8F1EC;
+            padding: 6px 20px;
+            border-radius: 30px;
+            font-family: 'Cairo', sans-serif;
+            font-weight: 800;
+            font-size: 1.15rem;
+            color: #1F3E2E;
+            margin: 10px 0 8px 0;
+        }
+        body.dark .subject-badge {
+            background: #3c4b43;
+            color: #EAF0EC;
+        }
+        /* تحسين وضوح المهام */
+/* تحسين وضوح المهام - خلفية خفيفة وحدود واضحة */
+/* تحسين وضوح المهام - خلفية شفافة، خط متقطع */
+.task-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 8px 0;
+    padding: 8px 12px;
+    border-radius: 0;
+    background: transparent;
+    border-bottom: 1px dashed var(--border-light);
+    transition: all 0.2s;
+}
+        .custom-checkbox {
+            appearance: none;
+            width: 30px;
+            height: 30px;
+            border: 3px solid #BCCFC4;
+            border-radius: 12px;
+            cursor: pointer;
+            flex-shrink: 0;
+            position: relative;
+            transition: 0.2s;
+            background: var(--input-bg);
+        }
+        .custom-checkbox:checked {
+            background: #4B7F63;
+            border-color: #4B7F63;
+            animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .custom-checkbox:checked::after {
+            content: '✓';
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .task-text {
+            font-size: 1.35rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            color: var(--text-dark);
+            font-family: 'Cairo', sans-serif;
+        }
+        .task-row input:checked + .task-text {
+            text-decoration: line-through;
+            color: #8fa698;
+            opacity: 0.7;
+        }
+        .note-box {
+            font-family: 'Cairo', sans-serif;
+            font-size: 1rem;
+            color: var(--text-light);
+            background: #FDF9F3;
+            padding: 8px 18px;
+            border-radius: 20px;
+            margin: 5px 0 12px 45px;
+            border-right: 5px solid #C4A682;
+            margin-right: 45px;
+            font-weight: 500;
+        }
+        body.dark .note-box {
+            background: #2d342f;
+            border-right-color: #d3aa6b;
+        }
+        .eid-badge {
+            background: linear-gradient(135deg, #F5E6D3, #E8D5BC);
+            color: #7A5A2E;
+            padding: 6px 20px;
+            border-radius: 40px;
+            font-weight: 800;
+            margin-bottom: 10px;
+            animation: eid-glow 2s ease-in-out infinite alternate;
+        }
+        @keyframes eid-glow {
+            0% { box-shadow: 0 0 5px rgba(201, 166, 114, 0.3); transform: scale(1); }
+            100% { box-shadow: 0 0 25px rgba(201, 166, 114, 0.8); transform: scale(1.03); }
+        }
+        .completion-badge {
+            display: none;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #4A2F0A;
+            padding: 8px 15px;
+            border-radius: 40px;
+            font-weight: 800;
+            margin-top: 15px;
+            text-align: center;
+            animation: shine 1.5s ease-in-out infinite;
+        }
+        .completion-badge.show { display: block; }
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 35px;
+            font-size: 1.3rem;
+            color: var(--text-light);
+        }
+        @media (max-width: 750px) {
+            .sticky-toolbar { flex-direction: column; align-items: stretch; }
+            .pomodoro-sticky { justify-content: space-between; flex-wrap: wrap; }
+            .timer-display { font-size: 1.5rem; min-width: 130px; padding: 6px 12px; }
+            .task-text { font-size: 1.2rem; }
+        }
+        /* أنيميشن الضغط على الزر */
+.icon-btn:active {
+    transform: scale(0.92) !important;
+    transition: transform 0.1s ease;
+}
+@keyframes modalPop {
+    0% {
+        opacity: 0;
+        transform: scale(0.9) translateY(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+}
+/* أنيميشن أزرار المؤقت */
+.timer-btn {
+    transition: all 0.2s cubic-bezier(0.34, 1.2, 0.64, 1);
+}
+.timer-btn:active {
+    transform: scale(0.92);
+    filter: brightness(0.9);
+}
+/* إزالة الإطار الأزرق المزعج عند الضغط على الأزرار */
+button:focus, button:active, .icon-btn:focus, .timer-btn:focus {
+    outline: none !important;
+    box-shadow: none !important;
+    -webkit-tap-highlight-color: transparent;
+}
+/* إصلاح ألوان النافذة المنبثقة */
+#timerModal > div {
+    background: var(--card-bg) !important;
+    border: 1px solid rgba(75, 127, 99, 0.4) !important;
+}
+#timerModal .timer-btn {
+    background: var(--btn-timer-bg) !important;
+    transition: all 0.2s;
+}
+#timerModal .timer-btn:hover {
+    background: var(--btn-timer-hover) !important;
+    transform: scale(0.95);
+}
+#timerModal .icon-btn {
+    background: var(--white) !important;
+    color: var(--text-dark) !important;
+}
+/* تحسين تموضع النافذة المنبثقة */
+#timerModal {
+    justify-content: center;
+    align-items: center;
+}
+#timerModal > div {
+    margin: 20px;
+    max-width: 550px;
+    width: 90%;
+}
+    </style>
+</head>
+<body>
+<!-- نافذة المؤقت المنبثقة (نسخة محسنة) -->
+<div id="timerModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(12px); z-index: 2000; justify-content: center; align-items: center; transition: all 0.3s ease; flex-direction: column;">
+    <div style="background: var(--card-bg); border-radius: 60px; padding: 40px 30px; width: 90%; max-width: 550px; text-align: center; box-shadow: 0 30px 70px rgba(0,0,0,0.4); border: 1px solid rgba(75, 127, 99, 0.4); animation: modalPop 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);">
+        <h2 style="color: var(--text-dark); font-weight: 900; font-size: 2rem; margin-bottom: 10px;">🍅 بومودورو برو</h2>
+        <p style="color: var(--text-light); margin-bottom: 20px;">ركز وابدع</p>
+        
+        <!-- عرض الوقت بشكل كبير -->
+        <div style="font-size: 5.5rem; font-family: monospace; font-weight: 900; background: linear-gradient(135deg, #2C3E2F, #1a2a1e); padding: 25px 20px; border-radius: 80px; color: #FFE6B0; letter-spacing: 8px; margin: 20px 0; box-shadow: inset 0 2px 8px rgba(0,0,0,0.3), 0 15px 25px rgba(0,0,0,0.2); text-shadow: 0 2px 5px rgba(0,0,0,0.3);" id="modalTimerDisplay">25:00</div>
+        
+        <!-- أزرار التحكم بالوقت (زيادة/نقصان) -->
+        <div style="display: flex; justify-content: center; gap: 20px; margin: 20px 0;">
+            <button id="modalDecreaseTime" class="timer-btn" style="background: var(--purple); padding: 10px 25px; font-size: 1.5rem;">- 5 دقائق</button>
+            <button id="modalIncreaseTime" class="timer-btn" style="background: var(--gold); padding: 10px 25px; font-size: 1.5rem;">+ 5 دقائق</button>
+        </div>
+        
+        <!-- أزرار التحكم الأساسية -->
+        <div style="display: flex; gap: 15px; justify-content: center; margin: 20px 0; flex-wrap: wrap;">
+            <button id="modalStartBtn" class="timer-btn" style="background: var(--green); padding: 12px 30px;">▶ بدء</button>
+            <button id="modalPauseBtn" class="timer-btn" style="background: var(--blue); padding: 12px 30px;">⏸ إيقاف</button>
+            <button id="modalResetBtn" class="timer-btn" style="background: var(--gold); padding: 12px 30px;">⟳ إعادة</button>
+        </div>
+        
+        <button id="closeModalBtn" class="icon-btn" style="margin-top: 10px;">إغلاق</button>
+    </div>
+</div>
+<div class="container">
+    <div class="top-header">
+        <h1> خطة أربعة أيام</h1>
+        <p>كان الله في عوننا</p>
+    </div>
+
+    <!-- شريط ثابت متطور (يتبع التمرير) -->
+    <div class="sticky-toolbar">
+    <button id="openTimerModalBtn" class="icon-btn" style="background: var(--green); color: white;">⏱️ مؤتمر بومودورو</button>
+</div>
+
+    <div class="dashboard-panel">
+        <div class="dash-label">📊 التقدم الكلي</div>
+        <div class="dash-icons"><span>🌱</span><span>🌿</span><span>🌳</span><span>🎉</span></div>
+        <div class="dash-track"><div class="dash-fill" id="globalFill"></div></div>
+        <div class="dash-percent" id="globalPercent">0%</div>
+    </div>
+
+    <div class="cards-grid" id="cardsGrid">
+        <!-- اليوم الأول -->
+        <div class="card day1" id="day1">
+            <div class="card-header"><span>💚</span><h2>اليوم الأول</h2></div>
+            <div class="inner-progress-area"><div class="inner-track"><div class="inner-fill" id="p1"></div></div><div class="inner-percent" id="pt1">0%</div></div>
+            <div class="subject-badge">🔬 كيمياء</div>
+            <div class="task-row"><input type="checkbox" class="custom-checkbox" id="c1_1"><span class="task-text">عضوية كاملة</span></div>
+            <div class="task-row"><input type="checkbox" class="custom-checkbox" id="c1_2"><span class="task-text">سرعة تفاعل</span></div>
+            <div class="task-row"><input type="checkbox" class="custom-checkbox" id="c1_3"><span class="task-text">توازن</span></div>
+            <div class="subject-badge">🇬🇧 إنجليزي</div>
+<div class="task-row"><input type="checkbox" class="custom-checkbox" id="c1_4"><span class="task-text">موضوع</span></div>
+<div class="note-box">💡 احفظ بقدر ما تستطيع</div>
+<div class="task-row"><input type="checkbox" class="custom-checkbox" id="c1_5"><span class="task-text">وحدات</span></div>
+<div class="subject-badge">📖 ديانة</div>
+<div class="task-row"><input type="checkbox" class="custom-checkbox" id="c1_6a"><span class="task-text">آية استحفاظ</span></div>
+<div class="note-box">💡 يفضل حفظ التفسير وأسئلتها</div>
+<div class="task-row"><input type="checkbox" class="custom-checkbox" id="c1_6"><span class="task-text">حديث</span></div>
+            <div class="subject-badge">📝 عربي</div>
+            <div class="task-row"><input type="checkbox" class="custom-checkbox" id="c1_7"><span class="task-text">أساليب كاملة</span></div>
+            <div class="completion-badge" id="badge1">🌟 إنجاز اليوم مكتمل!</div>
+        </div>
+        <!-- اليوم الثاني -->
+        <div class="card day2" id="day2">
+            <div class="card-header"><span>🌿</span><h2>اليوم الثاني</h2></div>
+            <div class="inner-progress-area"><div class="inner-track"><div class="inner-fill" id="p2"></div></div><div class="inner-percent" id="pt2">0%</div></div>
+            <div class="subject-badge">🧪 علوم</div><div class="note-box">🌅 مراجعة سريعة في الصباح الباكر</div>
+            <div class="task-row"><input type="checkbox" class="custom-checkbox" id="c2_1"><span class="task-text">مراجعة سريعة</span></div>
+            <div class="subject-badge">📝 عربي</div>
+            <div class="task-row"><input type="checkbox" class="custom-checkbox" id="c2_2"><span class="task-text">دراسة أدبية</span></div>
+            <div class="task-row"><input type="checkbox" class="custom-checkbox" id="c2_3"><span class="task-text">قواعد بسيطة</span></div>
+            <div class="subject-badge">🇬🇧 إنجليزي</div>
+            <div class="task-row"><input type="checkbox" class="custom-checkbox" id="c2_4"><span class="task-text">موضوع</span></div>
+            <div class="task-row"><input type="checkbox" class="custom-checkbox" id="c2_5"><span class="task-text">وحدات</span></div>
+            <div class="subject-badge">📖 ديانة</div>
+            <div class="task-row"><input type="checkbox" class="custom-checkbox" id="c2_6"><span class="task-text">آية استحفاظ</span></div>
+            <div class="task-row"><input type="checkbox" class="custom-checkbox" id="c2_7"><span class="task-text">حديث</span></div>
+            <div class="completion-badge" id="badge2">🌟 إنجاز اليوم مكتمل!</div>
+        </div>
+        <!-- اليوم الثالث -->
+        <div class="card day3" id="day3">
+            <div class="card-header"><span>🌱</span><h2>اليوم الثالث</h2></div>
+            <div class="inner-progress-area"><div class="inner-track"><div class="inner-fill" id="p3"></div></div><div class="inner-percent" id="pt3">0%</div></div>
+            <div class="subject-badge">🔬 كيمياء</div><div class="task-row"><input type="checkbox" class="custom-checkbox" id="c3_1"><span class="task-text">مراجعة شاملة</span></div>
+            <div class="subject-badge">📝 عربي</div>
+            <div class="task-row"><input type="checkbox" class="custom-checkbox" id="c3_2"><span class="task-text">موضوع</span></div>
+            <div class="note-box">✍️ أي ما يشمل من شواهد، مقدمات، خاتمة</div>
+            <div class="task-row"><input type="checkbox" class="custom-checkbox" id="c3_3"><span class="task-text">حل أسئلة قصائد</span></div>
+            <div class="subject-badge">🇬🇧 إنجليزي</div>
+            <div class="task-row"><input type="checkbox" class="custom-checkbox" id="c3_4"><span class="task-text">موضوع</span></div>
+            <div class="task-row"><input type="checkbox" class="custom-checkbox" id="c3_5"><span class="task-text">وحدات</span></div>
+            <div class="subject-badge">📖 ديانة</div>
+            <div class="task-row"><input type="checkbox" class="custom-checkbox" id="c3_6"><span class="task-text">آية استحفاظ</span></div>
+            <div class="task-row"><input type="checkbox" class="custom-checkbox" id="c3_7"><span class="task-text">حديث</span></div>
+            <div class="completion-badge" id="badge3">🌟 إنجاز اليوم مكتمل!</div>
+        </div>
+        <!-- اليوم الرابع -->
+        <div class="card day4" id="day4">
+            <div class="card-header"><span>🌸</span><h2>اليوم الرابع</h2></div>
+            <div class="eid-badge">🎉 يوم العيد 🎉</div>
+            <div class="inner-progress-area"><div class="inner-track"><div class="inner-fill" id="p4"></div></div><div class="inner-percent" id="pt4">0%</div></div>
+            <div class="subject-badge">📝 عربي</div><div class="task-row"><input type="checkbox" class="custom-checkbox" id="c4_1"><span class="task-text">قراءة</span></div>
+            <div class="task-row"><input type="checkbox" class="custom-checkbox" id="c4_2"><span class="task-text">ما بقي لك</span></div>
+            <div class="subject-badge">🇬🇧 إنجليزي</div>
+            <div class="task-row"><input type="checkbox" class="custom-checkbox" id="c4_3"><span class="task-text">موضوع</span></div>
+            <div class="task-row"><input type="checkbox" class="custom-checkbox" id="c4_4"><span class="task-text">وحدات</span></div>
+            <div class="subject-badge">📖 ديانة</div>
+            <div class="task-row"><input type="checkbox" class="custom-checkbox" id="c4_5"><span class="task-text">درس تختاره</span></div>
+            <div class="task-row"><input type="checkbox" class="custom-checkbox" id="c4_6"><span class="task-text">حديث</span></div>
+            <div class="completion-badge" id="badge4">🌟 إنجاز اليوم مكتمل!</div>
+        </div>
+    </div>
+    <div class="footer">تم الإنشاء بواسطة <strong>حسن المحمد</strong> 🤍</div>
+</div>
+
+<script>
+    (function(){
+        // ------------------- 1. الأصوات المحفزة -------------------
+        function playBeep(type='task') {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                oscillator.type = 'sine';
+                let frequency = type === 'task' ? 880 : 1568;
+                oscillator.frequency.value = frequency;
+                gainNode.gain.value = 0.2;
+                oscillator.start();
+                gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.6);
+                oscillator.stop(audioCtx.currentTime + 0.5);
+            } catch(e) { console.log("audio not supported"); }
+        }
+
+        // -------- 2. بومودورو (نافذة منبثقة محسنة) ----------
+let timerInterval = null;
+let timeLeft = 25 * 60;
+let isRunning = false;
+
+const modal = document.getElementById('timerModal');
+const modalDisplay = document.getElementById('modalTimerDisplay');
+const modalStart = document.getElementById('modalStartBtn');
+const modalPause = document.getElementById('modalPauseBtn');
+const modalReset = document.getElementById('modalResetBtn');
+const modalIncrease = document.getElementById('modalIncreaseTime');
+const modalDecrease = document.getElementById('modalDecreaseTime');
+const closeModal = document.getElementById('closeModalBtn');
+const openModalBtn = document.getElementById('openTimerModalBtn');
+
+function updateModalTimer() {
+    let mins = Math.floor(timeLeft / 60);
+    let secs = timeLeft % 60;
+    modalDisplay.textContent = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+}
+
+function playLoudAlarm() {
+    try {
+        let ctx = new (window.AudioContext || window.webkitAudioContext)();
+        let osc = ctx.createOscillator();
+        let gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = "sine";
+        osc.frequency.value = 880;
+        gain.gain.value = 0.3;
+        osc.start();
+        gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 1);
+        osc.stop(ctx.currentTime + 0.8);
+    } catch(e) {}
+}
+
+function modalTick() {
+    if (timeLeft <= 0) {
+        playLoudAlarm();
+        if (timerInterval) clearInterval(timerInterval);
+        timerInterval = null;
+        isRunning = false;
+    } else {
+        timeLeft--;
+        updateModalTimer();
+    }
+}
+
+if (modalStart) modalStart.onclick = () => {
+    if (timerInterval) clearInterval(timerInterval);
+    isRunning = true;
+    timerInterval = setInterval(modalTick, 1000);
+};
+if (modalPause) modalPause.onclick = () => {
+    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; isRunning = false; }
+};
+if (modalReset) modalReset.onclick = () => {
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = null;
+    isRunning = false;
+    timeLeft = 25 * 60;
+    updateModalTimer();
+};
+if (modalIncrease) modalIncrease.onclick = () => {
+    timeLeft = Math.min(5999, timeLeft + 300);
+    updateModalTimer();
+};
+if (modalDecrease) modalDecrease.onclick = () => {
+    timeLeft = Math.max(0, timeLeft - 300);
+    updateModalTimer();
+};
+if (closeModal) closeModal.onclick = () => {
+    modal.style.display = "none";
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = null;
+    isRunning = false;
+};
+if (openModalBtn) openModalBtn.onclick = () => {
+    modal.style.display = "flex";
+    updateModalTimer();
+};
+
+updateModalTimer();
+
+
+        
+        // -------- 3. تحديث التقدم وحفظ الحالة + كونفيتي وصوت--------
+        const allCheckboxes = document.querySelectorAll('.custom-checkbox');
+        function updateDayProgress(dayCard) {
+            let tasks = dayCard.querySelectorAll('.custom-checkbox');
+            let total = tasks.length, completed=0;
+            tasks.forEach(t=>{ if(t.checked) completed++; });
+            let pct = total>0 ? Math.round((completed/total)*100) :0;
+            let fill = dayCard.querySelector('.inner-fill');
+            let pText = dayCard.querySelector('.inner-percent');
+            if(fill) fill.style.width = pct+'%';
+            if(pText) pText.textContent = pct+'%';
+            let badge = dayCard.querySelector('.completion-badge');
+            let wasCompleted = badge && badge.classList.contains('show');
+            if(pct===100) {
+                if(badge && !wasCompleted) {
+                    badge.classList.add('show');
+                    playBeep('complete');
+                    launchConfetti(dayCard.querySelector('h2')?.textContent);
+                }
+            } else { if(badge) badge.classList.remove('show'); }
+            return pct;
+        }
+        function updateGlobalProgress(){
+            let allDays = document.querySelectorAll('.card');
+            let totalTasks=0, totalDone=0;
+            allDays.forEach(day=>{
+                let tasks = day.querySelectorAll('.custom-checkbox');
+                tasks.forEach(t=>{ totalTasks++; if(t.checked) totalDone++; });
+            });
+            let globalPct = totalTasks>0?Math.round((totalDone/totalTasks)*100):0;
+            document.getElementById('globalFill').style.width = globalPct+'%';
+            document.getElementById('globalPercent').textContent = globalPct+'%';
+        }
+        function launchConfetti(dayName){
+            const confettiDiv = document.createElement('div');
+            confettiDiv.style.cssText = `position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:9999; overflow:hidden;`;
+            document.body.appendChild(confettiDiv);
+            const colors = ['#FFD700','#4B7F63','#C4A682','#FF8C42','#7A6B8A'];
+            for(let i=0;i<120;i++) {
+                let spark = document.createElement('div');
+                let size = Math.random()*12+6;
+                let x = Math.random()*100, y = Math.random()*100;
+                let rot = Math.random()*360;
+                let col = colors[Math.floor(Math.random()*colors.length)];
+                spark.style.cssText = `position:absolute; left:${x}%; top:${y}%; width:${size}px; height:${size*0.6}px; background:${col}; border-radius:2px; transform:rotate(${rot}deg); animation:confettiFall ${Math.random()*2+2}s ease-in forwards; opacity:1;`;
+                confettiDiv.appendChild(spark);
+            }
+            const style = document.createElement('style');
+            style.textContent = `@keyframes confettiFall { 0%{transform:translateY(0px) rotate(0deg); opacity:1;} 100%{transform:translateY(100vh) rotate(720deg); opacity:0;} }`;
+            document.head.appendChild(style);
+            setTimeout(()=>confettiDiv.remove(), 3500);
+        }
+
+        // ربط التخزين وأحداث التغيير
+        allCheckboxes.forEach(cb => {
+            let saved = localStorage.getItem('task_'+cb.id);
+            if(saved!==null) cb.checked = saved === 'true';
+            cb.addEventListener('change', function(){
+                localStorage.setItem('task_'+this.id, this.checked);
+                let dayCard = this.closest('.card');
+                updateDayProgress(dayCard);
+                updateGlobalProgress();
+                if(this.checked) playBeep('task');
+            });
+        });
+        document.querySelectorAll('.card').forEach(day=> updateDayProgress(day));
+        updateGlobalProgress()
+       
+        
+    })();
+</script>
+</body>
+</html>
