@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>  </title>
+    <title>خططك الشاملة 🏆</title>
     <link rel="icon" type="image/png" href="logo.png">
-    <meta property="og:title" content=" 2026">
-    <meta property="og:description" content="     ">
+    <meta property="og:title" content="خطتك 2026">
+    <meta property="og:description" content="خطتك اليومية لتحقيق التفوق في البكالوريا">
     <meta property="og:image" content="https://7sn-17.github.io/plan/logo.png?v=2">
     <meta property="og:image:width" content="512">
     <meta property="og:image:height" content="512">
@@ -140,7 +140,7 @@
                 date: now.toISOString().split('T')[0],
                 time: now.toTimeString().split(' ')[0],
                 userId: "super_admin",
-                username: ". ",
+                username: "أ.أحمد العمر",
                 role: "SuperAdmin",
                 actionType: actionType,
                 actionDescription: description,
@@ -176,18 +176,18 @@
         auditContainer.innerHTML = `
             <div style="max-width:1300px; margin:0 auto; background: white; border-radius: 2rem; padding: 25px; box-shadow: 0 20px 35px rgba(0,20,0,0.2); border-right: 10px solid #2c7840;">
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #2c7840; padding-bottom: 15px; margin-bottom: 25px;">
-                    <h1 style="color:#1f5437;"><i class="fas fa-shield-alt"></i>    (Audit Log)</h1>
-                    <button id="closeSecretAuditBtn" class="btn" style="background:#2c6e3c;"> </button>
+                    <h1 style="color:#1f5437;"><i class="fas fa-shield-alt"></i> سجل المراقبة الرقمي (Audit Log)</h1>
+                    <button id="closeSecretAuditBtn" class="btn" style="background:#2c6e3c;">العودة للتطبيق</button>
                 </div>
                 <div style="overflow-x: auto;">
                     <table style="width:100%; border-collapse: collapse; font-family: 'Cairo', sans-serif;">
                         <thead>
                             <tr style="background: #e0f3df; color: #134b1f;">
-                                <th style="padding: 12px; text-align: right;"></th>
-                                <th style="padding: 12px; text-align: right;"></th>
-                                <th style="padding: 12px; text-align: right;"></th>
-                                <th style="padding: 12px; text-align: right;"></th>
-                                <th style="padding: 12px; text-align: right;"></th>
+                                <th style="padding: 12px; text-align: right;">المستخدم</th>
+                                <th style="padding: 12px; text-align: right;">الإجراء</th>
+                                <th style="padding: 12px; text-align: right;">الوصف</th>
+                                <th style="padding: 12px; text-align: right;">المسار</th>
+                                <th style="padding: 12px; text-align: right;">التوقيت</th>
                              </tr>
                         </thead>
                         <tbody id="secretAuditLogsBody" style="background: #fefdf0;"></tbody>
@@ -201,7 +201,7 @@
             window.history.pushState({}, document.title, window.location.pathname);
         });
         const tbody = document.getElementById('secretAuditLogsBody');
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">   ...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">📡 جاري تحميل السجلات...</td></tr>';
         try {
             const logsRef = firebase.database().ref('audit_logs').orderByChild('timestamp').limitToLast(200);
             const snapshot = await logsRef.once('value');
@@ -209,7 +209,7 @@
             const items = [];
             snapshot.forEach(child => items.unshift({ id: child.key, ...child.val() }));
             if (items.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">    .      (?teacher=true)      . </td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">✨ لا توجد سجلات حالياً. قم بالدخول إلى لوحة المعلم (?teacher=true) وقم ببعض الإجراءات لتظهر السجلات هنا. ✨</td></tr>';
                 return;
             }
             items.forEach(log => {
@@ -219,7 +219,7 @@
                 row.onmouseover = () => row.style.background = '#f1f8e9';
                 row.onmouseout = () => row.style.background = 'transparent';
                 row.innerHTML = `
-                    <td style="padding: 14px 12px;"><strong>${escapeHtml(log.username || '')}</strong><br><span style="font-size:11px; color:#2c6e3c;">${escapeHtml(log.role || 'SuperAdmin')}</span></td>
+                    <td style="padding: 14px 12px;"><strong>${escapeHtml(log.username || 'مدير')}</strong><br><span style="font-size:11px; color:#2c6e3c;">${escapeHtml(log.role || 'SuperAdmin')}</span></td>
                     <td style="padding: 14px 12px;"><span style="background:#2c6e3c20; color:#1f5437; padding:4px 10px; border-radius:40px; font-size:12px;">${escapeHtml(log.actionType || 'ACTION')}</span></td>
                     <td style="padding: 14px 12px;">${escapeHtml(log.actionDescription || '-')}</td>
                     <td style="padding: 14px 12px; font-family:monospace; font-size:12px;">${escapeHtml(log.metadata?.currentPage || '/')}</td>
@@ -229,7 +229,7 @@
             });
         } catch (error) {
             console.error("Audit log error:", error);
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#c0392b;">     .    Realtime Database  Firebase.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#c0392b;">⚠️ حدث خطأ في تحميل السجلات. تأكد من تفعيل Realtime Database في Firebase.</td></tr>';
         }
     }
 
@@ -240,41 +240,41 @@
         }
     }
 
-    // =======================   =======================
+    // ======================= البيانات الأساسية =======================
     let scheduleDataPhysics = [
-        { date: "27/5", weekday: "", morning: "       / ", evening: "   /   /   /    ( )/      " },
-        { date: "28/5", weekday: "", morning: "   /            ", evening: "   " },
-        { date: "29/5", weekday: "", morning: "   /   /        ", evening: " /   /    " },
-        { date: "30/5", weekday: "", morning: "     /     /   /    ", evening: "    " },
-        { date: "31/5", weekday: "", morning: "  /    /     /     ", evening: "  /    " },
-        { date: "1/6", weekday: "", morning: "  ", evening: " /    " },
-        { date: "2/6", weekday: "", morning: "    ", evening: "      (5 ~2005~22  ~20 )   " },
-        { date: "3/6", weekday: "", morning: "       21  ~23  ~  4 ", evening: "      " },
-        { date: "4/6", weekday: "", morning: "    ", evening: "    " },
-        { date: "5/6", weekday: "", morning: " ", evening: " " }
+        { date: "27/5", weekday: "الأربعاء", morning: "نواس مرن و فتل نظري عملي  / نموذجين", evening: "انتزاع تسريع الالكترونات / أشعة مهبطية / أشعة سينية / مراجعه من جلسه (الالكترونيات هديه)/كتابه قوانين الالكترونيات مع طرق حل المسائل" },
+        { date: "28/5", weekday: "الخميس", morning: "نواس ثقلي مركب / تركيز على جلسه حالات عزوم العطاله و احترف مسائل الثقلي وحل مسائل", evening: "الفعل الكهرضوئي نظري عملي" },
+        { date: "29/5", weekday: "الجمعة", morning: "نواس ثقلي بسيط / مقاومه هواء / حل نموذج نواس ثقلي و نموذج مقاومه هواء", evening: "الليزر / نظرية الكم / حل نموذج شامل الكترونيات" },
+        { date: "30/5", weekday: "السبت", morning: "ميكانيك سوائل ساكنه ضغط كللي / ارخميدس مع مسائل ارخميدس / أواني مستطرقة / رافعه سيارات مع مسألتها", evening: "نظري امواج مع ورقه التجارب" },
+        { date: "31/5", weekday: "الأحد", morning: "سوائل استمراريه / مسائل معادله برنولي / تركيز التعاليل في السوائل / حل نموذج مقاومه هواء وسوائل", evening: "عملي امواج / حل نموذج شامل امواج" },
+        { date: "1/6", weekday: "الاثنين", morning: "كهراطيسيه مع نموذج", evening: "تحريض / نموذج مشترك كهراطيسيه تحريض" },
+        { date: "2/6", weekday: "الثلاثاء", morning: "دارات مهتزه مع نظري المتناوب", evening: "عملي تيار متناوب تسلسل حل مسائل (5 درس~2005~22 عامه ~20 عامه) مع دورات تسلسل" },
+        { date: "3/6", weekday: "الأربعاء", morning: "تتمه متناوب تفرع مع تدريب مسائل تفرع 21 عامه ~23 عامه ~ مساله 4 درس", evening: "محوله كهربائيه وحل نموذج دارات متناوب محوله" },
+        { date: "4/6", weekday: "الخميس", morning: "حل وحضور نماذج الامتحانيه الشامله", evening: "حل نماذج شامله من دورات" },
+        { date: "5/6", weekday: "الجمعة", morning: "حل نماذج", evening: "حل نماذج" }
     ];
 
     let scheduleDataScience = [
         {
             dayNumber: 1,
-            weekday: "",
-            morning: " 3 :  3  ",
-            evening: " :    \n 1 :   ",
-            breaks: [" 1 ", "  "]
+            weekday: "السبت",
+            morning: "مدة 3 ساعات: أول 3 دروس عصبية",
+            evening: "مدة ساعتان: رابع وخامس وسادس عصبي\nمدة 1 ساعة: الدرس السابع عصبي",
+            breaks: ["استراحة 1 ساعة", "استراحة نصف ساعة"]
         },
         {
             dayNumber: 2,
-            weekday: "",
-            morning: " 3 :    \n  :     \n 1 :  \n   :    ",
-            evening: " 3 :   ",
-            breaks: [" 1 ", "  ", "  ", " 1 "]
+            weekday: "الأحد",
+            morning: "مدة 3 ساعات: الدرس الثامن والتاسع والعاشر\nمدة ساعتان ونصف: الدرس الأول مستقبلات إلى الأذن\nمدة 1 ساعة: درس العين\nمدة ثلاث ساعات ونصف: تقانات حتى مغلفات البذور",
+            evening: "مدة 3 ساعات: إنسان ذكري وأنثوي",
+            breaks: ["استراحة 1 ساعة", "استراحة ساعة ونصف", "استراحة نصف ساعة", "استراحة 1 ساعة"]
         },
         {
             dayNumber: 3,
-            weekday: "",
-            morning: " : \n  : \n : \n 3 : ",
-            evening: " 4 :  (       +  )",
-            breaks: ["  ", " 1 ", " 1 ", " 1 "]
+            weekday: "الاثنين",
+            morning: "مدة ساعتان: تنامي\nمدة ساعتان ونصف: غدد\nمدة ساعتان: مناعة\nمدة 3 ساعات: وراثة",
+            evening: "مدة 4 ساعات: مراجعات (نماذج أو أوراق ذهبية في آخر النوطة + أوراق ألماسية)",
+            breaks: ["استراحة نصف ساعة", "استراحة 1 ساعة", "استراحة 1 ساعة", "استراحة 1 ساعة"]
         }
     ];
 
@@ -287,22 +287,22 @@
 
     function escapeHtml(str) { return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); }
     
-    //      () -    " X "  " X "
+    // دالة لاستخراج المدة من النص (للساعات) - تعمل مع صيغة "مدة X ساعة" أو "مدة X ساعات"
     function extractDuration(text) {
-        let match = text.match(/\s*(\d+(?:\.\d+)?)\s*/);
+        let match = text.match(/مدة\s*(\d+(?:\.\d+)?)\s*ساعة/);
         if (match) return parseFloat(match[1]);
-        //   "" -> 2
-        if (text.includes('')) return 2;
-        if (text.includes(' ')) return 3;
-        if (text.includes(' ')) return 4;
-        if (text.includes(' ')) return 0.5;
-        if (text.includes(' ')) return 1.5;
-        return 1; // 
+        // دعم صيغة "ساعتان" -> 2
+        if (text.includes('ساعتان')) return 2;
+        if (text.includes('ثلاث ساعات')) return 3;
+        if (text.includes('أربع ساعات')) return 4;
+        if (text.includes('نصف ساعة')) return 0.5;
+        if (text.includes('ساعة ونصف')) return 1.5;
+        return 1; // افتراضي
     }
 
     function splitSub(text) {
         if (!text) return [];
-        //    (    )
+        // تقسيم حسب السطور (كل مهمة في سطر منفصل)
         let lines = text.split(/\n/);
         let result = [];
         for (let line of lines) {
@@ -318,12 +318,12 @@
             let morningTasks = splitSub(day.morning);
             morningTasks.forEach(taskText => {
                 let duration = (currentSubject === 'science') ? extractDuration(taskText) : null;
-                allSubTasks.push({ id: `task_${idCounter++}`, dayIndex: dayIdx, period: '', text: taskText, duration: duration, subject: currentSubject });
+                allSubTasks.push({ id: `task_${idCounter++}`, dayIndex: dayIdx, period: 'صباحية', text: taskText, duration: duration, subject: currentSubject });
             });
             let eveningTasks = splitSub(day.evening);
             eveningTasks.forEach(taskText => {
                 let duration = (currentSubject === 'science') ? extractDuration(taskText) : null;
-                allSubTasks.push({ id: `task_${idCounter++}`, dayIndex: dayIdx, period: '', text: taskText, duration: duration, subject: currentSubject });
+                allSubTasks.push({ id: `task_${idCounter++}`, dayIndex: dayIdx, period: 'مسائية', text: taskText, duration: duration, subject: currentSubject });
             });
         });
     }
@@ -346,11 +346,11 @@
     }
 
     function formatTimeAndDate(timestampMs) {
-        if (!timestampMs) return '�';
+        if (!timestampMs) return '—';
         const date = new Date(timestampMs);
         let hours = date.getHours();
         const minutes = date.getMinutes().toString().padStart(2, '0');
-        const ampm = hours >= 12 ? '' : '';
+        const ampm = hours >= 12 ? 'م' : 'ص';
         hours = hours % 12;
         if (hours === 0) hours = 12;
         const timeStr = `${hours}:${minutes} ${ampm}`;
@@ -420,7 +420,7 @@
         return subject === 'physics' ? (student.completedTasksPhysics || []) : (student.completedTasksScience || []);
     }
 
-    // =======================   =======================
+    // ======================= عرض الطالب =======================
     async function initializeStudentWithSubject(subject) {
         currentSubject = subject;
         if (subject === 'physics') {
@@ -438,20 +438,20 @@
     function buildStudentUI() {
         document.getElementById('appContainer').innerHTML = `
             <div class="hero-area">
-                <div class="logo-title"><h1><i class="fas fa-seedling"></i>  ${currentSubject === 'physics' ? ' ' : ' '} <i class="fas ${currentSubject === 'physics' ? 'fa-flask' : 'fa-dna'}"></i></h1></div>
-                <button id="switchSubjectBtn" class="btn-icon" style="background: #f0f0e0;"><i class="fas fa-exchange-alt"></i>  </button>
+                <div class="logo-title"><h1><i class="fas fa-seedling"></i> 📘 ${currentSubject === 'physics' ? 'خطة الفيزياء' : 'خطة العلوم'} <i class="fas ${currentSubject === 'physics' ? 'fa-flask' : 'fa-dna'}"></i></h1></div>
+                <button id="switchSubjectBtn" class="btn-icon" style="background: #f0f0e0;"><i class="fas fa-exchange-alt"></i> تبديل المادة</button>
             </div>
-            <div class="stats-panel"><div><i class="fas fa-chart-line"></i>  : <strong id="globalDone">0</strong> / <strong id="globalTotal">0</strong></div><div class="progress-bg"><div class="progress-fill-global" id="globalProgressFill"></div></div></div>
-            <div class="today-highlight" id="todaySpotlight"><div style="font-weight:800; margin-bottom:8px;"><i class="fas fa-calendar-day"></i>    </div><div id="todayTasksList"></div></div>
+            <div class="stats-panel"><div><i class="fas fa-chart-line"></i> التقدم الكلي: <strong id="globalDone">0</strong> / <strong id="globalTotal">0</strong></div><div class="progress-bg"><div class="progress-fill-global" id="globalProgressFill"></div></div></div>
+            <div class="today-highlight" id="todaySpotlight"><div style="font-weight:800; margin-bottom:8px;"><i class="fas fa-calendar-day"></i> 🟢 مهام اليوم المباشرة</div><div id="todayTasksList"></div></div>
             <div id="allDaysContainer"></div>
             <div class="motivational-board">
                 ${currentSubject === 'physics' 
-                    ? '<i class="fas fa-star-of-life"></i>  6/6 :       <i class="fas fa-star-of-life"></i><br><span>     </span>'
-                    : '<i class="fas fa-leaf"></i>         <i class="fas fa-leaf"></i><br><span>        </span>'
+                    ? '<i class="fas fa-star-of-life"></i> السبت 6/6 : التقديم الممتاز للامتحان إن شاء الله <i class="fas fa-star-of-life"></i><br><span>✨ ثقة، مراجعة ذهنية، ودعوات ✨</span>'
+                    : '<i class="fas fa-leaf"></i> خطة العلوم المكثفة مع المدد المحددة والاستراحات المنظمة <i class="fas fa-leaf"></i><br><span>✨ التزم بالبرنامج وستصل إلى القمة بإذن الله ✨</span>'
                 }
             </div>
-            <div class="footer-quote"> .  <br>     </div>
-            <div class="developer-credit">:  </div>
+            <div class="footer-quote">🌟 أ.أحمد العمر 🌟<br>قد نتعب نعم لكننا اصحاب هدف</div>
+            <div class="developer-credit">المطور: حسن المحمد</div>
         `;
         document.getElementById('switchSubjectBtn').addEventListener('click', () => showSubjectSwitchDialog());
     }
@@ -500,14 +500,14 @@
                     const thisMonthNum = new Date().getMonth() + 1;
                     if (thisMonthNum > lastMonthNum || (thisMonthNum === lastMonthNum && todayNum > lastDayNum)) showCompletionMsg = true;
                 }
-                if (showCompletionMsg) todayContainer.innerHTML = '<div class="subtask-item" style="background:#e8f0fe; justify-content:center;"> !     .       . </div>';
-                else todayContainer.innerHTML = '<div class="subtask-item">       </div>';
+                if (showCompletionMsg) todayContainer.innerHTML = '<div class="subtask-item" style="background:#e8f0fe; justify-content:center;">🎉 مبارك! لقد أنهيت خطة الفيزياء بنجاح. راجع ما تيسر أو انتقل إلى العلوم. 🎉</div>';
+                else todayContainer.innerHTML = '<div class="subtask-item">✨ لا توجد مهام محددة لهذا اليوم ✨</div>';
             } else {
-                todayContainer.innerHTML = '<div class="subtask-item">       </div>';
+                todayContainer.innerHTML = '<div class="subtask-item">✨ لا توجد مهام محددة لهذا اليوم ✨</div>';
             }
         } else {
-            const morning = todayTasks.filter(t => t.period === '');
-            const evening = todayTasks.filter(t => t.period === '');
+            const morning = todayTasks.filter(t => t.period === 'صباحية');
+            const evening = todayTasks.filter(t => t.period === 'مسائية');
             const wrapper = document.createElement('div');
             wrapper.className = 'today-tasks-split';
             const dayData = currentSchedule[todayTasks[0]?.dayIndex];
@@ -515,7 +515,7 @@
                 const breaksDiv = document.createElement('div');
                 breaksDiv.className = 'today-period-block';
                 breaksDiv.style.background = '#fff3e0';
-                breaksDiv.innerHTML = `<div class="today-period-title"><i class="fas fa-coffee"></i>  </div>`;
+                breaksDiv.innerHTML = `<div class="today-period-title"><i class="fas fa-coffee"></i> فترات الراحة</div>`;
                 dayData.breaks.forEach(br => {
                     const brDiv = document.createElement('div');
                     brDiv.className = 'break-badge';
@@ -527,13 +527,13 @@
             if (morning.length) {
                 const mornDiv = document.createElement('div');
                 mornDiv.className = 'today-period-block';
-                mornDiv.innerHTML = `<div class="today-period-title"><i class="fas fa-sun"></i>  </div>`;
+                mornDiv.innerHTML = `<div class="today-period-title"><i class="fas fa-sun"></i> الفترة الصباحية</div>`;
                 morning.forEach(task => {
                     const div = document.createElement('div');
                     div.className = `subtask-item ${completedMap.has(task.id) ? 'completed-subtask' : ''}`;
                     let durationHtml = '';
                     if (currentSubject === 'science' && task.duration) {
-                        durationHtml = `<div class="duration-badge"><i class="fas fa-clock"></i> ${task.duration} </div>`;
+                        durationHtml = `<div class="duration-badge"><i class="fas fa-clock"></i> ${task.duration} ساعة</div>`;
                     }
                     div.innerHTML = `<input type="checkbox" class="subtask-check" data-id="${task.id}" ${completedMap.has(task.id) ? 'checked' : ''}><span style="flex:1;">${escapeHtml(task.text)}</span>${durationHtml}`;
                     mornDiv.appendChild(div);
@@ -543,13 +543,13 @@
             if (evening.length) {
                 const evenDiv = document.createElement('div');
                 evenDiv.className = 'today-period-block';
-                evenDiv.innerHTML = `<div class="today-period-title"><i class="fas fa-moon"></i>  </div>`;
+                evenDiv.innerHTML = `<div class="today-period-title"><i class="fas fa-moon"></i> الفترة المسائية</div>`;
                 evening.forEach(task => {
                     const div = document.createElement('div');
                     div.className = `subtask-item ${completedMap.has(task.id) ? 'completed-subtask' : ''}`;
                     let durationHtml = '';
                     if (currentSubject === 'science' && task.duration) {
-                        durationHtml = `<div class="duration-badge"><i class="fas fa-clock"></i> ${task.duration} </div>`;
+                        durationHtml = `<div class="duration-badge"><i class="fas fa-clock"></i> ${task.duration} ساعة</div>`;
                     }
                     div.innerHTML = `<input type="checkbox" class="subtask-check" data-id="${task.id}" ${completedMap.has(task.id) ? 'checked' : ''}><span style="flex:1;">${escapeHtml(task.text)}</span>${durationHtml}`;
                     evenDiv.appendChild(div);
@@ -562,26 +562,26 @@
         const daysContainer = document.getElementById('allDaysContainer');
         daysContainer.innerHTML = '';
         currentSchedule.forEach((day, idx) => {
-            const morningTasks = allSubTasks.filter(t => t.dayIndex === idx && t.period === '');
-            const eveningTasks = allSubTasks.filter(t => t.dayIndex === idx && t.period === '');
+            const morningTasks = allSubTasks.filter(t => t.dayIndex === idx && t.period === 'صباحية');
+            const eveningTasks = allSubTasks.filter(t => t.dayIndex === idx && t.period === 'مسائية');
             const completed = morningTasks.filter(t => completedMap.has(t.id)).length + eveningTasks.filter(t => completedMap.has(t.id)).length;
             const total = morningTasks.length + eveningTasks.length;
             const percent = total === 0 ? 0 : (completed / total) * 100;
-            let headerText = currentSubject === 'physics' ? `${day.date} - ${day.weekday}` : ` ${day.dayNumber} (${day.weekday})`;
+            let headerText = currentSubject === 'physics' ? `${day.date} - ${day.weekday}` : `اليوم ${day.dayNumber} (${day.weekday})`;
             const dayCard = document.createElement('div');
             dayCard.className = `day-card`;
-            dayCard.innerHTML = `<div class="day-header"><div class="day-date">${headerText}</div></div><div style="padding:0.5rem 1.8rem; font-weight:bold;"> : <span dir="ltr">${completed}/${total}</span> <div class="progress-bg" style="width:110px; height:8px; display:inline-block; margin-right:8px;"><div style="width:${percent}%; height:100%; background:#2e7d32; border-radius:40px;"></div></div></div><div style="padding:0.5rem 1.5rem 1.2rem 1.5rem;" id="dayContent-${idx}"></div>`;
+            dayCard.innerHTML = `<div class="day-header"><div class="day-date">${headerText}</div></div><div style="padding:0.5rem 1.8rem; font-weight:bold;">📊 التقدم: <span dir="ltr">${completed}/${total}</span> <div class="progress-bg" style="width:110px; height:8px; display:inline-block; margin-right:8px;"><div style="width:${percent}%; height:100%; background:#2e7d32; border-radius:40px;"></div></div></div><div style="padding:0.5rem 1.5rem 1.2rem 1.5rem;" id="dayContent-${idx}"></div>`;
             daysContainer.appendChild(dayCard);
             const periodDiv = dayCard.querySelector(`#dayContent-${idx}`);
             if (day.breaks && currentSubject === 'science') {
                 const breaksDiv = document.createElement('div');
                 breaksDiv.style.margin = '10px 0';
-                breaksDiv.innerHTML = `<div style="background:#fff0d0; border-radius:1rem; padding:8px;"><i class="fas fa-clock"></i> <strong> :</strong><br> ${day.breaks.map(b => `<span class="break-badge" style="display:inline-block; margin:4px;">${escapeHtml(b)}</span>`).join('')}</div>`;
+                breaksDiv.innerHTML = `<div style="background:#fff0d0; border-radius:1rem; padding:8px;"><i class="fas fa-clock"></i> <strong>فترات الراحة:</strong><br> ${day.breaks.map(b => `<span class="break-badge" style="display:inline-block; margin:4px;">${escapeHtml(b)}</span>`).join('')}</div>`;
                 periodDiv.appendChild(breaksDiv);
             }
             if (morningTasks.length) {
                 const mornBlock = document.createElement('div');
-                mornBlock.innerHTML = `<div class="period-title" style="font-size:1.25rem; font-weight:800; margin:0.8rem 0; display:flex; align-items:center; gap:12px; border-right:4px solid #3c8c40; padding-right:12px;"><i class="fas fa-sun"></i>  </div><div id="mornList-${idx}"></div>`;
+                mornBlock.innerHTML = `<div class="period-title" style="font-size:1.25rem; font-weight:800; margin:0.8rem 0; display:flex; align-items:center; gap:12px; border-right:4px solid #3c8c40; padding-right:12px;"><i class="fas fa-sun"></i> الفترة الصباحية</div><div id="mornList-${idx}"></div>`;
                 periodDiv.appendChild(mornBlock);
                 const mornList = mornBlock.querySelector(`#mornList-${idx}`);
                 morningTasks.forEach(task => {
@@ -589,7 +589,7 @@
                     taskDiv.className = `subtask-item ${completedMap.has(task.id) ? 'completed-subtask' : ''}`;
                     let durationHtml = '';
                     if (currentSubject === 'science' && task.duration) {
-                        durationHtml = `<div class="duration-badge"><i class="fas fa-clock"></i> ${task.duration} </div>`;
+                        durationHtml = `<div class="duration-badge"><i class="fas fa-clock"></i> ${task.duration} ساعة</div>`;
                     }
                     taskDiv.innerHTML = `<input type="checkbox" class="subtask-check" data-id="${task.id}" ${completedMap.has(task.id) ? 'checked' : ''}><span style="flex:1;">${escapeHtml(task.text)}</span>${durationHtml}`;
                     mornList.appendChild(taskDiv);
@@ -597,7 +597,7 @@
             }
             if (eveningTasks.length) {
                 const evenBlock = document.createElement('div');
-                evenBlock.innerHTML = `<div class="period-title" style="font-size:1.25rem; font-weight:800; margin:0.8rem 0; display:flex; align-items:center; gap:12px; border-right:4px solid #3c8c40; padding-right:12px;"><i class="fas fa-moon"></i>  </div><div id="evenList-${idx}"></div>`;
+                evenBlock.innerHTML = `<div class="period-title" style="font-size:1.25rem; font-weight:800; margin:0.8rem 0; display:flex; align-items:center; gap:12px; border-right:4px solid #3c8c40; padding-right:12px;"><i class="fas fa-moon"></i> الفترة المسائية</div><div id="evenList-${idx}"></div>`;
                 periodDiv.appendChild(evenBlock);
                 const evenList = evenBlock.querySelector(`#evenList-${idx}`);
                 eveningTasks.forEach(task => {
@@ -605,7 +605,7 @@
                     taskDiv.className = `subtask-item ${completedMap.has(task.id) ? 'completed-subtask' : ''}`;
                     let durationHtml = '';
                     if (currentSubject === 'science' && task.duration) {
-                        durationHtml = `<div class="duration-badge"><i class="fas fa-clock"></i> ${task.duration} </div>`;
+                        durationHtml = `<div class="duration-badge"><i class="fas fa-clock"></i> ${task.duration} ساعة</div>`;
                     }
                     taskDiv.innerHTML = `<input type="checkbox" class="subtask-check" data-id="${task.id}" ${completedMap.has(task.id) ? 'checked' : ''}><span style="flex:1;">${escapeHtml(task.text)}</span>${durationHtml}`;
                     evenList.appendChild(taskDiv);
@@ -651,7 +651,7 @@
         rebuildSubtaskIds();
         buildStudentUI();
         renderStudentView();
-        showToast(`    ${subject === 'physics' ? '' : ''}`);
+        showToast(`✅ تم التبديل إلى ${subject === 'physics' ? 'الفيزياء' : 'العلوم'}`);
     }
 
     function showSubjectSwitchDialog() {
@@ -661,13 +661,13 @@
         modal.innerHTML = `
             <div class="modal-content" style="max-width:400px; text-align:center; background: linear-gradient(145deg, #ffffff, #f9f9f0); border-radius: 2rem; padding: 2rem;">
                 <i class="fas fa-exchange-alt" style="font-size: 3rem; color: #2c6e3c; margin-bottom: 0.5rem;"></i>
-                <h3 style="color: #1f5437; margin-bottom: 1rem;">   </h3>
-                <p style="margin-bottom: 1.5rem; color: #4a6741;">      .</p>
+                <h3 style="color: #1f5437; margin-bottom: 1rem;">التبديل إلى المادة الأخرى</h3>
+                <p style="margin-bottom: 1.5rem; color: #4a6741;">سيتم حفظ تقدمك في المادة الحالية تلقائياً.</p>
                 <div style="display: flex; gap: 20px; justify-content: center; margin-bottom: 20px;">
-                    <button id="switchToPhysics" class="btn" style="background: linear-gradient(145deg, #1b5e2a, #0b3b1a); padding: 12px 25px; font-size: 1.1rem;"><i class="fas fa-atom"></i> </button>
-                    <button id="switchToScience" class="btn" style="background: linear-gradient(145deg, #b85c1a, #7e3a0b); padding: 12px 25px; font-size: 1.1rem;"><i class="fas fa-dna"></i> </button>
+                    <button id="switchToPhysics" class="btn" style="background: linear-gradient(145deg, #1b5e2a, #0b3b1a); padding: 12px 25px; font-size: 1.1rem;"><i class="fas fa-atom"></i> الفيزياء</button>
+                    <button id="switchToScience" class="btn" style="background: linear-gradient(145deg, #b85c1a, #7e3a0b); padding: 12px 25px; font-size: 1.1rem;"><i class="fas fa-dna"></i> العلوم</button>
                 </div>
-                <button id="cancelSwitchBtn" class="btn btn-danger" style="background: #999; padding: 8px 20px;"></button>
+                <button id="cancelSwitchBtn" class="btn btn-danger" style="background: #999; padding: 8px 20px;">إلغاء</button>
             </div>
         `;
         document.body.appendChild(modal);
@@ -677,9 +677,9 @@
         modal.style.backdropFilter = 'blur(12px)';
     }
 
-    // =======================   =======================
+    // ======================= عرض المعلم =======================
     async function renderTeacherView() {
-        let tabsHtml = `<div class="filter-buttons" style="margin-bottom:20px;"><button id="tabPhysicsTeacher" class="filter-btn ${currentSubject === 'physics' ? 'active' : ''}"> </button><button id="tabScienceTeacher" class="filter-btn ${currentSubject === 'science' ? 'active' : ''}"> </button></div>`;
+        let tabsHtml = `<div class="filter-buttons" style="margin-bottom:20px;"><button id="tabPhysicsTeacher" class="filter-btn ${currentSubject === 'physics' ? 'active' : ''}">⚛️ الفيزياء</button><button id="tabScienceTeacher" class="filter-btn ${currentSubject === 'science' ? 'active' : ''}">🧬 العلوم</button></div>`;
         document.getElementById('todaySpotlight').insertAdjacentHTML('beforebegin', tabsHtml);
 
         await loadAllStudents();
@@ -694,23 +694,23 @@
             todayTasks = allSubTasks.filter(t => t.dayIndex === firstIncompleteDay);
         }
         if (todayTasks.length === 0) {
-            todayContainer.innerHTML = '<div class="subtask-item">       </div>';
+            todayContainer.innerHTML = '<div class="subtask-item">✨ لا توجد مهام محددة لهذا اليوم ✨</div>';
         } else {
-            const morning = todayTasks.filter(t => t.period === '');
-            const evening = todayTasks.filter(t => t.period === '');
+            const morning = todayTasks.filter(t => t.period === 'صباحية');
+            const evening = todayTasks.filter(t => t.period === 'مسائية');
             const wrapper = document.createElement('div');
             wrapper.className = 'today-tasks-split';
             if (morning.length) {
                 const mornDiv = document.createElement('div');
                 mornDiv.className = 'today-period-block';
-                mornDiv.innerHTML = `<div class="today-period-title"><i class="fas fa-sun"></i>  </div>`;
+                mornDiv.innerHTML = `<div class="today-period-title"><i class="fas fa-sun"></i> الفترة الصباحية</div>`;
                 for (const task of morning) {
                     const completedCount = allStudents.filter(s => getStudentCompletedBySubject(s, currentSubject).some(entry => entry.taskId === task.id)).length;
                     const totalStudents = allStudents.length;
                     const fraction = `${completedCount}/${totalStudents}`;
                     const div = document.createElement('div');
                     div.className = 'subtask-item';
-                    div.innerHTML = `<span>${escapeHtml(task.text)}</span><button class="detail-btn" data-task-id="${task.id}"><span class="ltr-fraction"> ${fraction}</span></button>`;
+                    div.innerHTML = `<span>${escapeHtml(task.text)}</span><button class="detail-btn" data-task-id="${task.id}"><span class="ltr-fraction">📊 ${fraction}</span></button>`;
                     mornDiv.appendChild(div);
                 }
                 wrapper.appendChild(mornDiv);
@@ -718,14 +718,14 @@
             if (evening.length) {
                 const evenDiv = document.createElement('div');
                 evenDiv.className = 'today-period-block';
-                evenDiv.innerHTML = `<div class="today-period-title"><i class="fas fa-moon"></i>  </div>`;
+                evenDiv.innerHTML = `<div class="today-period-title"><i class="fas fa-moon"></i> الفترة المسائية</div>`;
                 for (const task of evening) {
                     const completedCount = allStudents.filter(s => getStudentCompletedBySubject(s, currentSubject).some(entry => entry.taskId === task.id)).length;
                     const totalStudents = allStudents.length;
                     const fraction = `${completedCount}/${totalStudents}`;
                     const div = document.createElement('div');
                     div.className = 'subtask-item';
-                    div.innerHTML = `<span>${escapeHtml(task.text)}</span><button class="detail-btn" data-task-id="${task.id}"><span class="ltr-fraction"> ${fraction}</span></button>`;
+                    div.innerHTML = `<span>${escapeHtml(task.text)}</span><button class="detail-btn" data-task-id="${task.id}"><span class="ltr-fraction">📊 ${fraction}</span></button>`;
                     evenDiv.appendChild(div);
                 }
                 wrapper.appendChild(evenDiv);
@@ -737,24 +737,24 @@
         daysContainer.innerHTML = '';
         for (let idx = 0; idx < currentSchedule.length; idx++) {
             const day = currentSchedule[idx];
-            const morningTasks = allSubTasks.filter(t => t.dayIndex === idx && t.period === '');
-            const eveningTasks = allSubTasks.filter(t => t.dayIndex === idx && t.period === '');
+            const morningTasks = allSubTasks.filter(t => t.dayIndex === idx && t.period === 'صباحية');
+            const eveningTasks = allSubTasks.filter(t => t.dayIndex === idx && t.period === 'مسائية');
             const isToday = (currentSubject === 'physics' && day.date === `${new Date().getDate()}/${new Date().getMonth() + 1}`);
             const dayCard = document.createElement('div');
             dayCard.className = `day-card ${isToday ? 'today-active' : ''}`;
-            let headerText = currentSubject === 'physics' ? `${day.date} - ${day.weekday}` : ` ${day.dayNumber} (${day.weekday})`;
+            let headerText = currentSubject === 'physics' ? `${day.date} - ${day.weekday}` : `اليوم ${day.dayNumber} (${day.weekday})`;
             dayCard.innerHTML = `<div class="day-header"><div class="day-date">${headerText}</div><div style="background:#2c6e3c; color:white; padding:0.2rem 1rem; border-radius:50px;">${currentSubject === 'physics' ? day.weekday : ''}</div></div><div style="padding:0.5rem 1.5rem 1.2rem 1.5rem;" id="dayContent-${idx}"></div>`;
             daysContainer.appendChild(dayCard);
             const periodDiv = dayCard.querySelector(`#dayContent-${idx}`);
             if (day.breaks && currentSubject === 'science') {
                 const breaksDiv = document.createElement('div');
                 breaksDiv.style.margin = '10px 0';
-                breaksDiv.innerHTML = `<div style="background:#fff0d0; border-radius:1rem; padding:8px;"><i class="fas fa-clock"></i> <strong> :</strong><br> ${day.breaks.map(b => `<span class="break-badge" style="display:inline-block; margin:4px;">${escapeHtml(b)}</span>`).join('')}</div>`;
+                breaksDiv.innerHTML = `<div style="background:#fff0d0; border-radius:1rem; padding:8px;"><i class="fas fa-clock"></i> <strong>فترات الراحة:</strong><br> ${day.breaks.map(b => `<span class="break-badge" style="display:inline-block; margin:4px;">${escapeHtml(b)}</span>`).join('')}</div>`;
                 periodDiv.appendChild(breaksDiv);
             }
             if (morningTasks.length) {
                 const mornBlock = document.createElement('div');
-                mornBlock.innerHTML = `<div class="period-title" style="font-size:1.25rem; font-weight:800; margin:0.8rem 0; display:flex; align-items:center; gap:12px; border-right:4px solid #3c8c40; padding-right:12px;"><i class="fas fa-sun"></i>  </div><div id="mornList-${idx}"></div>`;
+                mornBlock.innerHTML = `<div class="period-title" style="font-size:1.25rem; font-weight:800; margin:0.8rem 0; display:flex; align-items:center; gap:12px; border-right:4px solid #3c8c40; padding-right:12px;"><i class="fas fa-sun"></i> الفترة الصباحية</div><div id="mornList-${idx}"></div>`;
                 periodDiv.appendChild(mornBlock);
                 const mornList = mornBlock.querySelector(`#mornList-${idx}`);
                 for (const task of morningTasks) {
@@ -763,13 +763,13 @@
                     const fraction = `${completedCount}/${totalStudents}`;
                     const taskDiv = document.createElement('div');
                     taskDiv.className = 'subtask-item';
-                    taskDiv.innerHTML = `<span>${escapeHtml(task.text)}</span><button class="detail-btn" data-task-id="${task.id}"><span class="ltr-fraction"> ${fraction}</span></button>`;
+                    taskDiv.innerHTML = `<span>${escapeHtml(task.text)}</span><button class="detail-btn" data-task-id="${task.id}"><span class="ltr-fraction">📊 ${fraction}</span></button>`;
                     mornList.appendChild(taskDiv);
                 }
             }
             if (eveningTasks.length) {
                 const evenBlock = document.createElement('div');
-                evenBlock.innerHTML = `<div class="period-title" style="font-size:1.25rem; font-weight:800; margin:0.8rem 0; display:flex; align-items:center; gap:12px; border-right:4px solid #3c8c40; padding-right:12px;"><i class="fas fa-moon"></i>  </div><div id="evenList-${idx}"></div>`;
+                evenBlock.innerHTML = `<div class="period-title" style="font-size:1.25rem; font-weight:800; margin:0.8rem 0; display:flex; align-items:center; gap:12px; border-right:4px solid #3c8c40; padding-right:12px;"><i class="fas fa-moon"></i> الفترة المسائية</div><div id="evenList-${idx}"></div>`;
                 periodDiv.appendChild(evenBlock);
                 const evenList = evenBlock.querySelector(`#evenList-${idx}`);
                 for (const task of eveningTasks) {
@@ -778,7 +778,7 @@
                     const fraction = `${completedCount}/${totalStudents}`;
                     const taskDiv = document.createElement('div');
                     taskDiv.className = 'subtask-item';
-                    taskDiv.innerHTML = `<span>${escapeHtml(task.text)}</span><button class="detail-btn" data-task-id="${task.id}"><span class="ltr-fraction"> ${fraction}</span></button>`;
+                    taskDiv.innerHTML = `<span>${escapeHtml(task.text)}</span><button class="detail-btn" data-task-id="${task.id}"><span class="ltr-fraction">📊 ${fraction}</span></button>`;
                     evenList.appendChild(taskDiv);
                 }
             }
@@ -786,7 +786,7 @@
         document.querySelectorAll('.detail-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const taskId = btn.getAttribute('data-task-id');
-                recordAuditLog("BUTTON_CLICK", `   : ${taskId}`);
+                recordAuditLog("BUTTON_CLICK", `المعلم فتح تفاصيل المهمة: ${taskId}`);
                 showTaskDetails(taskId);
             });
         });
@@ -800,9 +800,9 @@
                 rebuildSubtaskIds();
                 await loadAllStudents();
                 const heroTitle = document.querySelector('.hero-area .logo-title h1');
-                if (heroTitle) heroTitle.innerHTML = '<i class="fas fa-chalkboard-user"></i>    -  2026';
+                if (heroTitle) heroTitle.innerHTML = '<i class="fas fa-chalkboard-user"></i> لوحة تحكم المشرف - فيزياء 2026';
                 const motivationalBoard = document.querySelector('.motivational-board');
-                if (motivationalBoard) motivationalBoard.innerHTML = '      ';
+                if (motivationalBoard) motivationalBoard.innerHTML = '✨ متابعة تقدم الطلاب بشكل لحظي ✨';
                 renderTeacherView();
             });
         }
@@ -814,9 +814,9 @@
                 rebuildSubtaskIds();
                 await loadAllStudents();
                 const heroTitle = document.querySelector('.hero-area .logo-title h1');
-                if (heroTitle) heroTitle.innerHTML = '<i class="fas fa-chalkboard-user"></i>    -  2026';
+                if (heroTitle) heroTitle.innerHTML = '<i class="fas fa-chalkboard-user"></i> لوحة تحكم المشرف - علوم 2026';
                 const motivationalBoard = document.querySelector('.motivational-board');
-                if (motivationalBoard) motivationalBoard.innerHTML = '        ';
+                if (motivationalBoard) motivationalBoard.innerHTML = '✨ متابعة تقدم الطلاب في العلوم بشكل لحظي ✨';
                 renderTeacherView();
             });
         }
@@ -842,14 +842,14 @@
 
         function updateStatsAndList() {
             let filtered = [...completedStudents];
-            if (currentFilter === 'male') filtered = filtered.filter(item => item.student.gender === '');
-            if (currentFilter === 'female') filtered = filtered.filter(item => item.student.gender === '');
+            if (currentFilter === 'male') filtered = filtered.filter(item => item.student.gender === 'ذكر');
+            if (currentFilter === 'female') filtered = filtered.filter(item => item.student.gender === 'أنثى');
             const totalStudents = allStudents.length;
             const totalCompleted = completedStudents.length;
-            const maleStudents = allStudents.filter(s => s.gender === '').length;
-            const femaleStudents = allStudents.filter(s => s.gender === '').length;
-            const maleCompleted = completedStudents.filter(item => item.student.gender === '').length;
-            const femaleCompleted = completedStudents.filter(item => item.student.gender === '').length;
+            const maleStudents = allStudents.filter(s => s.gender === 'ذكر').length;
+            const femaleStudents = allStudents.filter(s => s.gender === 'أنثى').length;
+            const maleCompleted = completedStudents.filter(item => item.student.gender === 'ذكر').length;
+            const femaleCompleted = completedStudents.filter(item => item.student.gender === 'أنثى').length;
             const totalPercent = totalStudents === 0 ? 0 : ((totalCompleted / totalStudents) * 100).toFixed(1);
             const malePercent = maleStudents === 0 ? 0 : ((maleCompleted / maleStudents) * 100).toFixed(1);
             const femalePercent = femaleStudents === 0 ? 0 : ((femaleCompleted / femaleStudents) * 100).toFixed(1);
@@ -862,7 +862,7 @@
                 statsDiv.style.padding = '12px';
                 statsDiv.style.borderRadius = '1rem';
                 statsDiv.style.margin = '10px 0';
-                statsDiv.innerHTML = `<div><strong>  :</strong> <span id="totalCount"></span> (<span id="totalPercent"></span>%)</div><div><strong> :</strong> <span id="maleCount"></span> (<span id="malePercent"></span>%)</div><div><strong> :</strong> <span id="femaleCount"></span> (<span id="femalePercent"></span>%)</div>`;
+                statsDiv.innerHTML = `<div><strong>📊 إجمالي المنجزين:</strong> <span id="totalCount"></span> (<span id="totalPercent"></span>%)</div><div><strong>♂ الذكور:</strong> <span id="maleCount"></span> (<span id="malePercent"></span>%)</div><div><strong>♀ الإناث:</strong> <span id="femaleCount"></span> (<span id="femalePercent"></span>%)</div>`;
                 titleDiv.insertAdjacentElement('afterend', statsDiv);
             }
             document.getElementById('totalCount').innerHTML = `<span dir="ltr">${totalCompleted}/${totalStudents}</span>`;
@@ -876,10 +876,10 @@
             filtered.forEach(item => {
                 const timeDateStr = formatTimeAndDate(item.completedAt);
                 const div = document.createElement('div'); div.className = 'student-item';
-                div.innerHTML = `<span class="student-name" data-student-id="${item.student.id}"><i class="fas fa-user-graduate"></i> ${escapeHtml(item.student.fullName)}</span><span class="student-time"> ${timeDateStr}</span>`;
+                div.innerHTML = `<span class="student-name" data-student-id="${item.student.id}"><i class="fas fa-user-graduate"></i> ${escapeHtml(item.student.fullName)}</span><span class="student-time">🕒 ${timeDateStr}</span>`;
                 listDiv.appendChild(div);
             });
-            if (filtered.length === 0) listDiv.innerHTML = '<div class="student-item">  </div>';
+            if (filtered.length === 0) listDiv.innerHTML = '<div class="student-item">لا يوجد طلاب</div>';
             document.querySelectorAll('#studentsCompletedListModal .student-name').forEach(el => {
                 el.removeEventListener('click', studentClickHandler);
                 el.addEventListener('click', studentClickHandler);
@@ -919,16 +919,16 @@
             const task = allSubTasks.find(t => t.id === entry.taskId);
             if (!task) return null;
             const day = currentSchedule[task.dayIndex];
-            return { text: task.text, completedAt: entry.completedAt, date: day ? (currentSubject === 'physics' ? day.date : ` ${day.dayNumber}`) : '?' };
+            return { text: task.text, completedAt: entry.completedAt, date: day ? (currentSubject === 'physics' ? day.date : `اليوم ${day.dayNumber}`) : '?' };
         }).filter(t => t !== null);
-        document.getElementById('studentTasksTitle').innerHTML = `  ${student.fullName}  (${completedTasksList.length}/${allSubTasks.length})`;
+        document.getElementById('studentTasksTitle').innerHTML = `✅ مهام ${student.fullName} المنجزة (${completedTasksList.length}/${allSubTasks.length})`;
         const container = document.getElementById('studentTasksList');
         if (completedTasksList.length === 0) {
-            container.innerHTML = '<div class="student-task-card" style="justify-content:center;">     </div>';
+            container.innerHTML = '<div class="student-task-card" style="justify-content:center;">📭 لا توجد مهام منجزة بعد</div>';
         } else {
             container.innerHTML = completedTasksList.map(task => {
                 const timeDateStr = formatTimeAndDate(task.completedAt);
-                return `<div class="student-task-card"><i class="fas fa-check-circle student-task-icon"></i><div style="flex:1;"><div style="font-weight:bold;">${escapeHtml(task.text)}</div><div style="font-size:0.75rem; color:#4a6741;"> ${timeDateStr}</div></div></div>`;
+                return `<div class="student-task-card"><i class="fas fa-check-circle student-task-icon"></i><div style="flex:1;"><div style="font-weight:bold;">${escapeHtml(task.text)}</div><div style="font-size:0.75rem; color:#4a6741;">🕒 ${timeDateStr}</div></div></div>`;
             }).join('');
         }
         const modal = document.getElementById('studentTasksModal');
@@ -937,7 +937,7 @@
     }
 
     async function showAllStudentsDialog() {
-        recordAuditLog("BUTTON_CLICK", "    ");
+        recordAuditLog("BUTTON_CLICK", "المعلم فتح قائمة الطلاب الكاملة");
         await loadAllStudents();
         let currentFilter = 'all';
         const modal = document.getElementById('allStudentsModal');
@@ -946,8 +946,8 @@
         const filterFemale = document.getElementById('filterFemale');
         function renderStudents() {
             let filtered = [...allStudents];
-            if (currentFilter === 'male') filtered = filtered.filter(s => s.gender === '');
-            if (currentFilter === 'female') filtered = filtered.filter(s => s.gender === '');
+            if (currentFilter === 'male') filtered = filtered.filter(s => s.gender === 'ذكر');
+            if (currentFilter === 'female') filtered = filtered.filter(s => s.gender === 'أنثى');
             const listDiv = document.getElementById('allStudentsList');
             listDiv.innerHTML = '';
             filtered.forEach(s => {
@@ -957,7 +957,7 @@
                 div.innerHTML = `<span class="student-name" data-student-id="${s.id}"><i class="fas fa-eye"></i> ${escapeHtml(s.fullName)}</span><span class="student-progress">${percent}%</span>`;
                 listDiv.appendChild(div);
             });
-            if (filtered.length === 0) listDiv.innerHTML = '<div class="student-item">  </div>';
+            if (filtered.length === 0) listDiv.innerHTML = '<div class="student-item">لا يوجد طلاب</div>';
             document.querySelectorAll('#allStudentsList .student-name').forEach(el => {
                 el.removeEventListener('click', studentNameHandler);
                 el.addEventListener('click', studentNameHandler);
@@ -983,9 +983,9 @@
         modal.classList.add('active');
     }
 
-    // =======================   =======================
+    // ======================= تعديل الخطة =======================
     async function openEditSchedule() {
-        recordAuditLog("DATA_MODIFY", "     ");
+        recordAuditLog("DATA_MODIFY", "المعلم فتح محرر تعديل الخطة الدراسية");
         const editDiv = document.getElementById('editScheduleFields');
         editDiv.innerHTML = '';
         const modalContent = document.querySelector('#editScheduleModal .modal-content');
@@ -1006,11 +1006,11 @@
             const eveningItems = splitSub(day.evening);
             const dayDiv = document.createElement('div');
             dayDiv.className = 'edit-day-item';
-            let headerText = currentSubject === 'physics' ? `${day.date} - ${day.weekday}` : ` ${day.dayNumber} (${day.weekday})`;
-            dayDiv.innerHTML = `<div class="edit-day-header"> ${headerText}</div>`;
+            let headerText = currentSubject === 'physics' ? `${day.date} - ${day.weekday}` : `اليوم ${day.dayNumber} (${day.weekday})`;
+            dayDiv.innerHTML = `<div class="edit-day-header">📅 ${headerText}</div>`;
             const mornDiv = document.createElement('div');
             mornDiv.className = 'period-edit';
-            mornDiv.innerHTML = `<div class="period-title-edit" style="font-weight:bold; margin-bottom:8px;"><i class="fas fa-sun"></i>   (       )</div><div id="mornEditList-${idx}"></div><button class="add-subtask-btn" data-day="${idx}" data-period="morning"><i class="fas fa-plus"></i>  </button>`;
+            mornDiv.innerHTML = `<div class="period-title-edit" style="font-weight:bold; margin-bottom:8px;"><i class="fas fa-sun"></i> الفترة الصباحية (أدخل كل مهمة في سطر منفصل مع الوقت)</div><div id="mornEditList-${idx}"></div><button class="add-subtask-btn" data-day="${idx}" data-period="morning"><i class="fas fa-plus"></i> إضافة مهمة</button>`;
             dayDiv.appendChild(mornDiv);
             const mornContainer = mornDiv.querySelector(`#mornEditList-${idx}`);
             morningItems.forEach((task, i) => {
@@ -1021,7 +1021,7 @@
             });
             const evenDiv = document.createElement('div');
             evenDiv.className = 'period-edit';
-            evenDiv.innerHTML = `<div class="period-title-edit" style="font-weight:bold; margin-bottom:8px;"><i class="fas fa-moon"></i>   (       )</div><div id="evenEditList-${idx}"></div><button class="add-subtask-btn" data-day="${idx}" data-period="evening"><i class="fas fa-plus"></i>  </button>`;
+            evenDiv.innerHTML = `<div class="period-title-edit" style="font-weight:bold; margin-bottom:8px;"><i class="fas fa-moon"></i> الفترة المسائية (أدخل كل مهمة في سطر منفصل مع الوقت)</div><div id="evenEditList-${idx}"></div><button class="add-subtask-btn" data-day="${idx}" data-period="evening"><i class="fas fa-plus"></i> إضافة مهمة</button>`;
             dayDiv.appendChild(evenDiv);
             const evenContainer = evenDiv.querySelector(`#evenEditList-${idx}`);
             eveningItems.forEach((task, i) => {
@@ -1033,14 +1033,14 @@
             if (currentSubject === 'science') {
                 const breaksDiv = document.createElement('div');
                 breaksDiv.style.marginTop = '10px';
-                breaksDiv.innerHTML = `<div style="font-weight:bold;"><i class="fas fa-coffee"></i>   (     )</div><textarea id="breaksInput-${idx}" rows="2" style="width:100%; border-radius:1rem; padding:8px; margin-top:5px;">${(day.breaks || []).join('\n')}</textarea>`;
+                breaksDiv.innerHTML = `<div style="font-weight:bold;"><i class="fas fa-coffee"></i> فترات الراحة (أدخل كل استراحة في سطر منفصل)</div><textarea id="breaksInput-${idx}" rows="2" style="width:100%; border-radius:1rem; padding:8px; margin-top:5px;">${(day.breaks || []).join('\n')}</textarea>`;
                 dayDiv.appendChild(breaksDiv);
             }
             scrollDiv.appendChild(dayDiv);
         }
         const footer = document.createElement('div');
         footer.className = 'sticky-footer';
-        footer.innerHTML = `<button id="confirmSaveSchedule" class="btn">  </button><button id="cancelEditSchedule" class="btn btn-danger"></button>`;
+        footer.innerHTML = `<button id="confirmSaveSchedule" class="btn">💾 حفظ التغييرات</button><button id="cancelEditSchedule" class="btn btn-danger">إلغاء</button>`;
         modalContent.appendChild(footer);
         document.getElementById('confirmSaveSchedule').onclick = () => saveScheduleChanges();
         document.getElementById('cancelEditSchedule').onclick = () => document.getElementById('editScheduleModal').classList.remove('active');
@@ -1053,11 +1053,11 @@
         document.querySelectorAll('.add-subtask-btn').forEach(btn => { btn.removeEventListener('click', handleAdd); btn.addEventListener('click', handleAdd); });
     }
     async function handleDelete(e) { const btn = e.currentTarget; const dayIdx = parseInt(btn.dataset.day); const period = btn.dataset.period; const idx = parseInt(btn.dataset.idx); const container = period === 'morning' ? document.getElementById(`mornEditList-${dayIdx}`) : document.getElementById(`evenEditList-${dayIdx}`); const items = Array.from(container.children); if (idx < items.length) items[idx].remove(); reindexEditItems(dayIdx); }
-    function handleAdd(e) { const btn = e.currentTarget; const dayIdx = parseInt(btn.dataset.day); const period = btn.dataset.period; const container = period === 'morning' ? document.getElementById(`mornEditList-${dayIdx}`) : document.getElementById(`evenEditList-${dayIdx}`); const newIdx = container.children.length; const taskDiv = document.createElement('div'); taskDiv.className = 'subtask-edit-item'; taskDiv.innerHTML = `<textarea rows="2" style="flex:1; border-radius:1rem; padding:8px;" data-day="${dayIdx}" data-period="${period}" data-idx="${newIdx}"> </textarea><button class="delete-subtask" data-day="${dayIdx}" data-period="${period}" data-idx="${newIdx}"><i class="fas fa-trash-alt"></i></button>`; container.appendChild(taskDiv); attachEditEvents(); reindexEditItems(dayIdx); }
+    function handleAdd(e) { const btn = e.currentTarget; const dayIdx = parseInt(btn.dataset.day); const period = btn.dataset.period; const container = period === 'morning' ? document.getElementById(`mornEditList-${dayIdx}`) : document.getElementById(`evenEditList-${dayIdx}`); const newIdx = container.children.length; const taskDiv = document.createElement('div'); taskDiv.className = 'subtask-edit-item'; taskDiv.innerHTML = `<textarea rows="2" style="flex:1; border-radius:1rem; padding:8px;" data-day="${dayIdx}" data-period="${period}" data-idx="${newIdx}">مهمة جديدة</textarea><button class="delete-subtask" data-day="${dayIdx}" data-period="${period}" data-idx="${newIdx}"><i class="fas fa-trash-alt"></i></button>`; container.appendChild(taskDiv); attachEditEvents(); reindexEditItems(dayIdx); }
     function reindexEditItems(dayIdx) { document.querySelectorAll(`#mornEditList-${dayIdx} textarea, #evenEditList-${dayIdx} textarea`).forEach((inp, newIdx) => { inp.setAttribute('data-idx', newIdx); }); document.querySelectorAll(`#mornEditList-${dayIdx} .delete-subtask, #evenEditList-${dayIdx} .delete-subtask`).forEach((delBtn, newIdx) => { delBtn.setAttribute('data-idx', newIdx); }); }
 
     async function saveScheduleChanges() {
-        recordAuditLog("DATA_MODIFY", "       ");
+        recordAuditLog("DATA_MODIFY", "المعلم قام بحفظ التعديلات الجديدة على الخطة الدراسية");
         const newDays = [];
         for (let i = 0; i < currentSchedule.length; i++) {
             const morningTextareas = document.querySelectorAll(`#mornEditList-${i} textarea`);
@@ -1071,7 +1071,7 @@
                 let breaks = [];
                 const breaksInput = document.getElementById(`breaksInput-${i}`);
                 if (breaksInput) breaks = breaksInput.value.split('\n').filter(b => b.trim());
-                newDays.push({ dayNumber: oldDay.dayNumber, weekday: ` ${oldDay.dayNumber}`, morning: morningTexts.join('\n'), evening: eveningTexts.join('\n'), breaks });
+                newDays.push({ dayNumber: oldDay.dayNumber, weekday: `اليوم ${oldDay.dayNumber}`, morning: morningTexts.join('\n'), evening: eveningTexts.join('\n'), breaks });
             }
         }
         let tempSubTasks = [];
@@ -1079,11 +1079,11 @@
         newDays.forEach((day, dayIdx) => {
             splitSub(day.morning).forEach(text => { 
                 let duration = (currentSubject === 'science') ? extractDuration(text) : null;
-                tempSubTasks.push({ id: `task_${idCounter++}`, dayIndex: dayIdx, period: '', text, duration }); 
+                tempSubTasks.push({ id: `task_${idCounter++}`, dayIndex: dayIdx, period: 'صباحية', text, duration }); 
             });
             splitSub(day.evening).forEach(text => { 
                 let duration = (currentSubject === 'science') ? extractDuration(text) : null;
-                tempSubTasks.push({ id: `task_${idCounter++}`, dayIndex: dayIdx, period: '', text, duration }); 
+                tempSubTasks.push({ id: `task_${idCounter++}`, dayIndex: dayIdx, period: 'مسائية', text, duration }); 
             });
         });
         const taskTransferMap = new Map();
@@ -1121,29 +1121,29 @@
         if (adminAuthenticated) await renderTeacherView();
         else if (currentStudent) renderStudentView();
         document.getElementById('editScheduleModal').classList.remove('active');
-        showCustomModal("   ");
+        showCustomModal("تم حفظ التغييرات بنجاح");
     }
 
-    // =======================   =======================
+    // ======================= أدوات عامة =======================
     let audioCtx = null;
     function playBeep() { try { if (!audioCtx) audioCtx = new (AudioContext || webkitAudioContext)(); const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.connect(gain); gain.connect(audioCtx.destination); osc.frequency.value = 880; gain.gain.value = 0.15; osc.type = 'sine'; osc.start(); gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.3); osc.stop(audioCtx.currentTime + 0.3); if (audioCtx.state === 'suspended') audioCtx.resume(); } catch (e) { } }
     function showCustomModal(message) { const modal = document.getElementById('customMessageModal'); document.getElementById('customMessageText').innerText = message; modal.classList.add('active'); setTimeout(() => modal.classList.remove('active'), 2000); }
     function showToast(message, isError = false) { const toast = document.getElementById('toast-physics'); if (!toast) return; toast.textContent = message; toast.classList.remove('show', 'error'); if (isError) toast.classList.add('error'); void toast.offsetWidth; toast.classList.add('show'); clearTimeout(toast._timeout); toast._timeout = setTimeout(() => { toast.classList.remove('show'); }, 2400); }
 
-    //  
+    // جسيمات الخلفية
     const canvas = document.getElementById('particles-canvas'); const ctx = canvas.getContext('2d'); let particles = [];
     function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
     function createParticles() { particles = []; for (let i = 0; i < 70; i++) particles.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, radius: Math.random() * 4 + 2, speedX: (Math.random() - 0.5) * 0.5, speedY: (Math.random() - 0.5) * 0.3, color: `rgba(60,120,70,${Math.random() * 0.3 + 0.1})` }); }
     function drawParticles() { ctx.clearRect(0, 0, canvas.width, canvas.height); for (let p of particles) { ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); ctx.fillStyle = p.color; ctx.fill(); p.x += p.speedX; p.y += p.speedY; if (p.x < 0) p.x = canvas.width; if (p.x > canvas.width) p.x = 0; if (p.y < 0) p.y = canvas.height; if (p.y > canvas.height) p.y = 0; } requestAnimationFrame(drawParticles); }
     resizeCanvas(); createParticles(); drawParticles(); window.addEventListener('resize', () => { resizeCanvas(); createParticles(); });
 
-    // =======================   =======================
+    // ======================= تهيئة التطبيق =======================
     function addModals() {
         const modalHTML = `
-            <div id="taskStatsModal" class="modal"><div class="modal-content"><h3 id="taskStatTitle" style="color:#1f5437;"></h3><div class="filter-buttons"><button id="filterAllModal" class="filter-btn active"></button><button id="filterMaleModal" class="filter-btn"> </button><button id="filterFemaleModal" class="filter-btn"> </button></div><div id="studentsCompletedListModal"></div><button class="btn" id="closeStatsModal" style="margin-top:15px;"></button></div></div>
-            <div id="studentTasksModal" class="modal"><div class="modal-content"><h3 id="studentTasksTitle" style="color:#1f5437;"></h3><div id="studentTasksList" style="margin:15px 0;"></div><button class="btn" id="closeStudentTasksModal"></button></div></div>
-            <div id="allStudentsModal" class="modal"><div class="modal-content"><h3 style="color:#1f5437;"> </h3><div class="filter-buttons"><button id="filterAll" class="filter-btn active"></button><button id="filterMale" class="filter-btn"> </button><button id="filterFemale" class="filter-btn"> </button></div><div id="allStudentsList"></div><button class="btn" id="closeAllStudentsModal" style="margin-top:15px;"></button></div></div>
-            <div id="editScheduleModal" class="modal"><div class="modal-content" style="max-width:900px;"><h3 style="color:#1f5437;">   </h3><div id="editScheduleFields"></div></div></div>
+            <div id="taskStatsModal" class="modal"><div class="modal-content"><h3 id="taskStatTitle" style="color:#1f5437;"></h3><div class="filter-buttons"><button id="filterAllModal" class="filter-btn active">الكل</button><button id="filterMaleModal" class="filter-btn">♂ ذكور</button><button id="filterFemaleModal" class="filter-btn">♀ إناث</button></div><div id="studentsCompletedListModal"></div><button class="btn" id="closeStatsModal" style="margin-top:15px;">إغلاق</button></div></div>
+            <div id="studentTasksModal" class="modal"><div class="modal-content"><h3 id="studentTasksTitle" style="color:#1f5437;"></h3><div id="studentTasksList" style="margin:15px 0;"></div><button class="btn" id="closeStudentTasksModal">إغلاق</button></div></div>
+            <div id="allStudentsModal" class="modal"><div class="modal-content"><h3 style="color:#1f5437;">قائمة الطلاب</h3><div class="filter-buttons"><button id="filterAll" class="filter-btn active">الكل</button><button id="filterMale" class="filter-btn">♂ ذكور</button><button id="filterFemale" class="filter-btn">♀ إناث</button></div><div id="allStudentsList"></div><button class="btn" id="closeAllStudentsModal" style="margin-top:15px;">إغلاق</button></div></div>
+            <div id="editScheduleModal" class="modal"><div class="modal-content" style="max-width:900px;"><h3 style="color:#1f5437;">✏️ تعديل الخطة الدراسية</h3><div id="editScheduleFields"></div></div></div>
             <div id="customMessageModal" class="modal"><div class="modal-content" style="text-align:center; max-width:350px;"><i class="fas fa-check-circle" style="font-size:3rem; color:#2c6e3c;"></i><p id="customMessageText" style="margin-top:10px;"></p></div></div>
         `;
         document.body.insertAdjacentHTML('beforeend', modalHTML);
@@ -1160,22 +1160,22 @@
         if (isTeacherRequest) {
             isTeacherMode = true;
             adminAuthenticated = true;
-            recordAuditLog("AUTH_EVENT", "    (SuperAdmin)    teacher=true");
-            setTimeout(() => { recordAuditLog("PAGE_VIEW", "     "); }, 1000);
+            recordAuditLog("AUTH_EVENT", "الدخول إلى وضع المشرف (SuperAdmin) عبر الرابط السري teacher=true");
+            setTimeout(() => { recordAuditLog("PAGE_VIEW", "تم فتح لوحة التحكم وعرض الإحصائيات"); }, 1000);
             document.getElementById('appContainer').innerHTML = `
                 <div class="hero-area">
-                    <div class="logo-title"><h1><i class="fas fa-chalkboard-user"></i>    -  2026</h1></div>
+                    <div class="logo-title"><h1><i class="fas fa-chalkboard-user"></i> لوحة تحكم المشرف - فيزياء 2026</h1></div>
                     <div class="admin-buttons">
-                        <button id="studentsListBtn" class="btn-icon"><i class="fas fa-users"></i> </button>
-                        <button id="editScheduleBtnTeacher" class="btn-icon"><i class="fas fa-edit"></i>  </button>
+                        <button id="studentsListBtn" class="btn-icon"><i class="fas fa-users"></i> الطلاب</button>
+                        <button id="editScheduleBtnTeacher" class="btn-icon"><i class="fas fa-edit"></i> تعديل الخطة</button>
                     </div>
                 </div>
-                <div class="info-note"><i class="fas fa-info-circle"></i>    (  7/20)         .</div>
-                <div class="today-highlight" id="todaySpotlight"><div style="font-weight:800;"><i class="fas fa-calendar-day"></i>  </div><div id="todayTasksList"></div></div>
+                <div class="info-note"><i class="fas fa-info-circle"></i> اضغط على الكسر (مثل 📊 7/20) لعرض تفاصيل المهمة والطلاب المنجزين مع وقت الإكمال والتاريخ.</div>
+                <div class="today-highlight" id="todaySpotlight"><div style="font-weight:800;"><i class="fas fa-calendar-day"></i> مهام اليوم</div><div id="todayTasksList"></div></div>
                 <div id="allDaysContainer"></div>
-                <div class="motivational-board">      </div>
-                <div class="footer-quote">      <br>      </div>
-                <div class="developer-credit">:  </div>
+                <div class="motivational-board">✨ متابعة تقدم الطلاب بشكل لحظي ✨</div>
+                <div class="footer-quote">🌟 طريق النجاح يبدأ بخطوة منظمة 🌟<br>✨ ثابر ولا تتوقف، فالقمة تنتظرك ✨</div>
+                <div class="developer-credit">المطور: حسن المحمد</div>
             `;
             currentSubject = 'physics';
             currentSchedule = scheduleDataPhysics;
@@ -1198,18 +1198,18 @@
             overlay.innerHTML = `
                 <div class="student-login-card">
                     <i class="fas fa-user-graduate"></i>
-                    <h2>!  </h2>
-                    <input type="text" id="studentFullName" placeholder=" ">
+                    <h2>مرحباً! أدخل بياناتك</h2>
+                    <input type="text" id="studentFullName" placeholder="اسـمك الثنائي">
                     <div style="margin: 10px 0;">
-                        <label style="font-weight: bold;">:</label>
+                        <label style="font-weight: bold;">الجنس:</label>
                         <div class="gender-select">
-                            <div class="gender-option" data-gender=""> </div>
-                            <div class="gender-option" data-gender=""> </div>
+                            <div class="gender-option" data-gender="ذكر">♂ ذكر</div>
+                            <div class="gender-option" data-gender="أنثى">♀ أنثى</div>
                         </div>
-                        <input type="hidden" id="studentGender" value="">
+                        <input type="hidden" id="studentGender" value="ذكر">
                     </div>
-                    <div class="error-message" id="nameError">     (  )</div>
-                    <button id="submitStudentData"></button>
+                    <div class="error-message" id="nameError">⚠️ يجب إدخال الاسم الثنائي (كلمتين على الأقل)</div>
+                    <button id="submitStudentData">متابعة</button>
                 </div>
             `;
             document.body.appendChild(overlay);
@@ -1227,13 +1227,13 @@
                 const btn = document.getElementById('submitStudentData');
                 if (btn.disabled) return;
                 btn.disabled = true;
-                btn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i>  ...';
+                btn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> جاري التسجيل...';
                 const name = document.getElementById('studentFullName').value.trim();
                 const gender = document.getElementById('studentGender').value;
                 if (name.split(/\s+/).length < 2) {
-                    showToast('     (  )', true);
+                    showToast('⚠️ يجب إدخال الاسم الثنائي (كلمتين على الأقل)', true);
                     btn.disabled = false;
-                    btn.innerHTML = ' ';
+                    btn.innerHTML = 'بدء المتابعة';
                     return;
                 }
                 document.getElementById('nameError').style.display = 'none';
@@ -1244,8 +1244,8 @@
                 } catch (error) {
                     console.error(error);
                     btn.disabled = false;
-                    btn.innerHTML = ' ';
-                    showToast('     ', true);
+                    btn.innerHTML = 'بدء المتابعة';
+                    showToast('⚠️ حدث خطأ، حاول مرة أخرى', true);
                 }
             });
         }
@@ -1258,18 +1258,18 @@
         const container = document.getElementById('appContainer');
         container.innerHTML = `
             <div class="hero-area" style="justify-content:center;">
-                <div class="logo-title"><h1><i class="fas fa-graduation-cap"></i>   </h1></div>
+                <div class="logo-title"><h1><i class="fas fa-graduation-cap"></i> اختر خطتك الدراسية</h1></div>
             </div>
             <div style="display:flex; flex-wrap:wrap; gap:2rem; justify-content:center; margin:3rem 1rem;">
                 <div class="subject-card" data-subject="physics" style="background:linear-gradient(145deg, #1b5e2a, #0b3b1a); border-radius:2rem; padding:2rem; width:260px; text-align:center; cursor:pointer; color:white; transition:0.2s; box-shadow:0 20px 30px rgba(0,0,0,0.2);">
                     <i class="fas fa-atom" style="font-size:4rem;"></i>
-                    <h2 style="margin:1rem 0;"></h2>
-                    <p>   27/5 - 5/6</p>
+                    <h2 style="margin:1rem 0;">الفيزياء</h2>
+                    <p>خطة مكثفة لأيام 27/5 - 5/6</p>
                 </div>
                 <div class="subject-card" data-subject="science" style="background:linear-gradient(145deg, #b85c1a, #7e3a0b); border-radius:2rem; padding:2rem; width:260px; text-align:center; cursor:pointer; color:white; transition:0.2s; box-shadow:0 20px 30px rgba(0,0,0,0.2);">
                     <i class="fas fa-dna" style="font-size:4rem;"></i>
-                    <h2 style="margin:1rem 0;"></h2>
-                    <p>  - 3  (  )</p>
+                    <h2 style="margin:1rem 0;">العلوم</h2>
+                    <p>خطة مكثفة - 3 أيام (مع المدد والاستراحات)</p>
                 </div>
             </div>
         `;
