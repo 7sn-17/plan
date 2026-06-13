@@ -192,6 +192,35 @@
     { dayNumber: 3, weekday: "الاثنين", morning: "تنامي {2}\nاستراحة {0.5}\nغدد {2.5}\nاستراحة {1}\nمناعة {2}\nاستراحة {1}\nوراثة {3}\nاستراحة {1}\nمراجعات (نماذج أو أوراق ذهبية في آخر النوطة + أوراق ألماسية) {4}", evening: "" }
 ];
 
+// ========== دوال الحماية المضافة لحل الشاشة السوداء ==========
+function safeLocalStorageSet(key, value) {
+    try {
+        localStorage.setItem(key, value);
+        return true;
+    } catch(e) {
+        console.warn("localStorage blocked", e);
+        return false;
+    }
+}
+
+function safeLocalStorageGet(key) {
+    try {
+        return localStorage.getItem(key);
+    } catch(e) {
+        return null;
+    }
+}
+
+async function safeFirebaseGet(docRef, timeoutMs = 5000) {
+    const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('انتهى وقت الاتصال بقاعدة البيانات')), timeoutMs)
+    );
+    const getPromise = docRef.get();
+    const result = await Promise.race([getPromise, timeoutPromise]);
+    return result;
+}
+// ============================================================
+
     let allSubTasks = [];
     let currentStudent = null;
     let allStudents = [];
@@ -252,16 +281,22 @@ function cleanTaskText(rawText) {
     }
 
     async function loadScheduleFromFirebase(subject) {
-        const docRef = db.collection('config').doc(`schedule_${subject}`);
-        const doc = await docRef.get();
-        if (doc.exists) {
-            if (subject === 'physics') scheduleDataPhysics = doc.data().days;
-            else scheduleDataScience = doc.data().days;
-        } else {
-            if (subject === 'physics') await docRef.set({ days: scheduleDataPhysics });
-            else await docRef.set({ days: scheduleDataScience });
-        }
+    const docRef = db.collection('config').doc(`schedule_${subject}`);
+    let doc;
+    try {
+        doc = await safeFirebaseGet(docRef);
+    } catch(e) {
+        console.error(`فشل تحميل جدول ${subject}`, e);
+        throw new Error(`لا يمكن الاتصال بقاعدة البيانات لجدول ${subject}`);
     }
+    if (doc.exists) {
+        if (subject === 'physics') scheduleDataPhysics = doc.data().days;
+        else scheduleDataScience = doc.data().days;
+    } else {
+        if (subject === 'physics') await docRef.set({ days: scheduleDataPhysics });
+        else await docRef.set({ days: scheduleDataScience });
+    }
+}
 
     async function saveScheduleToFirebase(subject, data) {
         await db.collection('config').doc(`schedule_${subject}`).set({ days: data });
@@ -298,7 +333,7 @@ function cleanTaskText(rawText) {
         const studentData = { fullName, gender, completedTasksPhysics: [], completedTasksScience: [], createdAt: firebase.firestore.FieldValue.serverTimestamp(), lastUpdated: firebase.firestore.FieldValue.serverTimestamp() };
         await db.collection('students').doc(newId).set(studentData);
         currentStudent = { id: newId, ...studentData };
-        localStorage.setItem('studentId', newId);
+        safeLocalStorageSet('studentId', newId);
         return currentStudent;
     }
 
@@ -976,15 +1011,21 @@ taskDiv.innerHTML = `<input type="checkbox" class="subtask-check" data-id="${tas
 let audioContext = null;
 function initAudio() {
     if (!audioContext) {
-        try { audioContext = new (window.AudioContext || window.webkitAudioContext)(); }
-        catch(e) { return; }
+        try {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        } catch(e) {
+            console.warn("Web Audio not supported", e);
+            return false;
+        }
     }
-    if (audioContext.state === 'suspended') audioContext.resume();
+    if (audioContext && audioContext.state === 'suspended') {
+        audioContext.resume().catch(e => console.warn("resume failed", e));
+    }
+    return true;
 }
 function playSound(type) {
     try {
-        initAudio();
-        if (!audioContext) return;
+        if (!initAudio()) return;
         let frequency = 800, duration = 0.12, volume = 0.1;
         if (type === 'click') { frequency = 880; duration = 0.08; volume = 0.08; }
         else if (type === 'select') { frequency = 660; duration = 0.2; volume = 0.12; }
@@ -1012,6 +1053,25 @@ function playSound(type) {
         osc.start();
         gain.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + duration);
         osc.stop(audioContext.currentTime + duration);
+    } catch(e) { console.warn("playSound error", e); }
+}
+function playBeep() {
+    try {
+        if (!audioContext) {
+            try { audioContext = new (window.AudioContext || window.webkitAudioContext)(); }
+            catch(e) { return; }
+        }
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        osc.connect(gain);
+        gain.connect(audioContext.destination);
+        osc.frequency.value = 880;
+        gain.gain.value = 0.15;
+        osc.type = 'sine';
+        osc.start();
+        gain.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 0.3);
+        osc.stop(audioContext.currentTime + 0.3);
+        if (audioContext.state === 'suspended') audioContext.resume();
     } catch(e) { }
 }
 function attachSoundsToButtons() {
@@ -1051,102 +1111,145 @@ function refreshSounds() { setTimeout(attachSoundsToButtons, 50); }
     }
 
     async function initApp() {
-        await loadScheduleFromFirebase('physics');
-        await loadScheduleFromFirebase('science');
-        const urlParams = new URLSearchParams(window.location.search);
-        const isTeacherRequest = urlParams.get('teacher') === 'true';
-        if (isTeacherRequest) {
-            isTeacherMode = true;
-            adminAuthenticated = true;
-            document.getElementById('appContainer').innerHTML = `
-                <div class="hero-area">
-                    <div class="logo-title"><h1><i class="fas fa-chalkboard-user"></i> لوحة تحكم المشرف - فيزياء 2026</h1></div>
-                    <div class="admin-buttons">
-                        <button id="studentsListBtn" class="btn-icon"><i class="fas fa-users"></i> الطلاب</button>
-                        <button id="editScheduleBtnTeacher" class="btn-icon"><i class="fas fa-edit"></i> تعديل الخطة</button>
-                    </div>
+    // إضافة: شاشة تحميل أولية لمنع الشاشة البيضاء/السوداء
+    document.getElementById('appContainer').innerHTML = `
+        <div style="text-align:center; padding:3rem; background:#fff; border-radius:2rem; margin:2rem;">
+            <i class="fas fa-spinner fa-pulse" style="font-size:3rem; color:#2c6e3c;"></i>
+            <p style="margin-top:1rem;">جاري تحميل البيانات...</p>
+            <p style="font-size:0.8rem; color:#888;">إذا استغرق الأمر أكثر من 10 ثوانٍ، تأكد من اتصالك بالإنترنت أو استخدم VPN.</p>
+        </div>
+    `;
+
+    try {
+        // إضافة: تحميل الجدولين بمهلة زمنية 8 ثوانٍ
+        await Promise.race([
+            Promise.all([
+                loadScheduleFromFirebase('physics').catch(e => { console.warn("Physics load failed", e); throw e; }),
+                loadScheduleFromFirebase('science').catch(e => { console.warn("Science load failed", e); throw e; })
+            ]),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000))
+        ]);
+    } catch (err) {
+        console.error("Firebase error", err);
+        // إضافة: عرض رسالة خطأ واضحة بدلاً من الشاشة السوداء
+        document.getElementById('appContainer').innerHTML = `
+            <div style="text-align:center; padding:2rem; background:white; border-radius:2rem; margin:2rem; border-right:5px solid #c0392b;">
+                <i class="fas fa-exclamation-triangle" style="font-size:4rem; color:#c0392b;"></i>
+                <h2 style="color:#c0392b;">⚠️ تعذر الاتصال بخوادم التطبيق</h2>
+                <p style="margin:1rem 0;">الأسباب المحتملة:</p>
+                <ul style="text-align:right; display:inline-block; margin-bottom:1.5rem;">
+                    <li>الإنترنت ضعيف أو مقطوع</li>
+                    <li>خدمات Google (Firebase) محظورة في بلدك</li>
+                    <li>المتصفح المدمج في واتساب أو فيسبوك غير متوافق</li>
+                </ul>
+                <p><strong>الحلول:</strong></p>
+                <ul style="text-align:right; margin-bottom:1.5rem;">
+                    <li>📱 استخدم <strong>Google Chrome</strong> أو <strong>Safari</strong> (وليس من داخل واتساب)</li>
+                    <li>🌐 قم بتشغيل <strong>VPN</strong> إذا كنت في منطقة محظورة</li>
+                    <li>🔄 جرب <strong>إعادة تحميل الصفحة</strong></li>
+                </ul>
+                <button onclick="location.reload()" class="btn" style="background:#2c6e3c;">🔄 إعادة المحاولة</button>
+            </div>
+        `;
+        return;
+    }
+
+    // باقي الكود الأصلي لم يتغير نهائياً (عدا تعديل localStorage)
+    const urlParams = new URLSearchParams(window.location.search);
+    const isTeacherRequest = urlParams.get('teacher') === 'true';
+    if (isTeacherRequest) {
+        isTeacherMode = true;
+        adminAuthenticated = true;
+        document.getElementById('appContainer').innerHTML = `
+            <div class="hero-area">
+                <div class="logo-title"><h1><i class="fas fa-chalkboard-user"></i> لوحة تحكم المشرف - فيزياء 2026</h1></div>
+                <div class="admin-buttons">
+                    <button id="studentsListBtn" class="btn-icon"><i class="fas fa-users"></i> الطلاب</button>
+                    <button id="editScheduleBtnTeacher" class="btn-icon"><i class="fas fa-edit"></i> تعديل الخطة</button>
                 </div>
-                <div class="info-note"><i class="fas fa-info-circle"></i> اضغط على الكسر (مثل 📊 7/20) لعرض تفاصيل المهمة والطلاب المنجزين مع وقت الإكمال والتاريخ.</div>
-                <div class="today-highlight" id="todaySpotlight"><div style="font-weight:800;"><i class="fas fa-calendar-day"></i> مهام اليوم</div><div id="todayTasksList"></div></div>
-                <div id="allDaysContainer"></div>
-                <div class="motivational-board">✨ متابعة تقدم الطلاب بشكل لحظي ✨</div>
-                <div class="footer-quote">🌟 طريق النجاح يبدأ بخطوة منظمة 🌟<br>✨ ثابر ولا تتوقف، فالقمة تنتظرك ✨</div>
-                <div class="developer-credit" onclick="window.open('https://wa.me/17862927607', '_blank');">
+            </div>
+            <div class="info-note"><i class="fas fa-info-circle"></i> اضغط على الكسر (مثل 📊 7/20) لعرض تفاصيل المهمة والطلاب المنجزين مع وقت الإكمال والتاريخ.</div>
+            <div class="today-highlight" id="todaySpotlight"><div style="font-weight:800;"><i class="fas fa-calendar-day"></i> مهام اليوم</div><div id="todayTasksList"></div></div>
+            <div id="allDaysContainer"></div>
+            <div class="motivational-board">✨ متابعة تقدم الطلاب بشكل لحظي ✨</div>
+            <div class="footer-quote">🌟 طريق النجاح يبدأ بخطوة منظمة 🌟<br>✨ ثابر ولا تتوقف، فالقمة تنتظرك ✨</div>
+            <div class="developer-credit" onclick="window.open('https://wa.me/17862927607', '_blank');">
     <i class="fab fa-whatsapp"></i> المطور: حسن المحمد
 </div>
-            `;
-            currentSubject = 'physics';
-            currentSchedule = scheduleDataPhysics;
-            rebuildSubtaskIds();
-            await renderTeacherView();
-            document.getElementById('editScheduleBtnTeacher').addEventListener('click', openEditSchedule);
-            document.getElementById('studentsListBtn').addEventListener('click', showAllStudentsDialog);
-        } else {
-            const storedId = localStorage.getItem('studentId');
-            if (storedId) {
-                await loadStudentData(storedId);
-                if (currentStudent) {
-                    showSubjectSelectionScreen();
-                    return;
-                }
+        `;
+        currentSubject = 'physics';
+        currentSchedule = scheduleDataPhysics;
+        rebuildSubtaskIds();
+        await renderTeacherView();
+        document.getElementById('editScheduleBtnTeacher').addEventListener('click', openEditSchedule);
+        document.getElementById('studentsListBtn').addEventListener('click', showAllStudentsDialog);
+    } else {
+        // تعديل: استخدام safeLocalStorageGet بدلاً من localStorage.getItem
+        const storedId = safeLocalStorageGet('studentId');
+        if (storedId) {
+            await loadStudentData(storedId);
+            if (currentStudent) {
+                showSubjectSelectionScreen();
+                return;
             }
-            const overlay = document.createElement('div');
-            overlay.className = 'student-login-overlay';
-            overlay.innerHTML = `
-                <div class="student-login-card">
-                    <i class="fas fa-user-graduate"></i>
-                    <h2>مرحباً! أدخل بياناتك</h2>
-                    <input type="text" id="studentFullName" placeholder="اسـمك الثنائي">
-                    <div style="margin: 10px 0;">
-                        <label style="font-weight: bold;">الجنس:</label>
-                        <div class="gender-select">
-                            <div class="gender-option" data-gender="ذكر">♂ ذكر</div>
-                            <div class="gender-option" data-gender="أنثى">♀ أنثى</div>
-                        </div>
-                        <input type="hidden" id="studentGender" value="ذكر">
-                    </div>
-                    <div class="error-message" id="nameError">⚠️ يجب إدخال الاسم الثنائي (كلمتين على الأقل)</div>
-                    <button id="submitStudentData">متابعة</button>
-                </div>
-            `;
-            document.body.appendChild(overlay);
-            const genderOptions = overlay.querySelectorAll('.gender-option');
-            const genderInput = document.getElementById('studentGender');
-            genderOptions.forEach(opt => {
-                opt.addEventListener('click', () => {
-                    genderOptions.forEach(o => o.classList.remove('selected'));
-                    opt.classList.add('selected');
-                    genderInput.value = opt.getAttribute('data-gender');
-                });
-            });
-            genderOptions[0].classList.add('selected');
-            document.getElementById('submitStudentData').addEventListener('click', async () => {
-                const btn = document.getElementById('submitStudentData');
-                if (btn.disabled) return;
-                btn.disabled = true;
-                btn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> جاري التسجيل...';
-                const name = document.getElementById('studentFullName').value.trim();
-                const gender = document.getElementById('studentGender').value;
-                if (name.split(/\s+/).length < 2) {
-                    showToast('⚠️ يجب إدخال الاسم الثنائي (كلمتين على الأقل)', true);
-                    btn.disabled = false;
-                    btn.innerHTML = 'بدء المتابعة';
-                    return;
-                }
-                document.getElementById('nameError').style.display = 'none';
-                try {
-                    await registerStudent(name, gender);
-                    overlay.remove();
-                    showSubjectSelectionScreen();
-                } catch (error) {
-                    console.error(error);
-                    btn.disabled = false;
-                    btn.innerHTML = 'بدء المتابعة';
-                    showToast('⚠️ حدث خطأ، حاول مرة أخرى', true);
-                }
-            });
         }
+        const overlay = document.createElement('div');
+        overlay.className = 'student-login-overlay';
+        overlay.innerHTML = `
+            <div class="student-login-card">
+                <i class="fas fa-user-graduate"></i>
+                <h2>مرحباً! أدخل بياناتك</h2>
+                <input type="text" id="studentFullName" placeholder="اسـمك الثنائي">
+                <div style="margin: 10px 0;">
+                    <label style="font-weight: bold;">الجنس:</label>
+                    <div class="gender-select">
+                        <div class="gender-option" data-gender="ذكر">♂ ذكر</div>
+                        <div class="gender-option" data-gender="أنثى">♀ أنثى</div>
+                    </div>
+                    <input type="hidden" id="studentGender" value="ذكر">
+                </div>
+                <div class="error-message" id="nameError">⚠️ يجب إدخال الاسم الثنائي (كلمتين على الأقل)</div>
+                <button id="submitStudentData">متابعة</button>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        const genderOptions = overlay.querySelectorAll('.gender-option');
+        const genderInput = document.getElementById('studentGender');
+        genderOptions.forEach(opt => {
+            opt.addEventListener('click', () => {
+                genderOptions.forEach(o => o.classList.remove('selected'));
+                opt.classList.add('selected');
+                genderInput.value = opt.getAttribute('data-gender');
+            });
+        });
+        genderOptions[0].classList.add('selected');
+        document.getElementById('submitStudentData').addEventListener('click', async () => {
+            const btn = document.getElementById('submitStudentData');
+            if (btn.disabled) return;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> جاري التسجيل...';
+            const name = document.getElementById('studentFullName').value.trim();
+            const gender = document.getElementById('studentGender').value;
+            if (name.split(/\s+/).length < 2) {
+                showToast('⚠️ يجب إدخال الاسم الثنائي (كلمتين على الأقل)', true);
+                btn.disabled = false;
+                btn.innerHTML = 'بدء المتابعة';
+                return;
+            }
+            document.getElementById('nameError').style.display = 'none';
+            try {
+                await registerStudent(name, gender);
+                overlay.remove();
+                showSubjectSelectionScreen();
+            } catch (error) {
+                console.error(error);
+                btn.disabled = false;
+                btn.innerHTML = 'بدء المتابعة';
+                showToast('⚠️ حدث خطأ، حاول مرة أخرى', true);
+            }
+        });
     }
+}
 
     function showSubjectSelectionScreen() {
         currentSchedule = [];
