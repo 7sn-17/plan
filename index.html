@@ -299,7 +299,7 @@ function cleanTaskText(rawText) {
             <div class="today-highlight" id="todaySpotlight"><div style="font-weight:800; margin-bottom:8px;"><i class="fas fa-calendar-day"></i> 🟢 مهام اليوم المباشرة</div><div id="todayTasksList"></div></div>
             <div id="allDaysContainer"></div>
             <div class="motivational-board">${currentSubject === 'physics' ? '<i class="fas fa-star-of-life"></i> السبت 6/6 : التقديم الممتاز للامتحان إن شاء الله <i class="fas fa-star-of-life"></i><br><span>✨ ثقة، مراجعة ذهنية، ودعوات ✨</span>' : '<i class="fas fa-leaf"></i> خطة العلوم المكثفة مع المدد المحددة والاستراحات المنظمة <i class="fas fa-leaf"></i><br><span>✨ التزم بالبرنامج وستصل إلى القمة بإذن الله ✨</span>'}</div>
-            <div class="footer-quote">قد نتعب نعم لكننا اصحاب هدف</div>
+            <div class="footer-quote">أنت أقوى مما تتصور، وأكثر مما تتخيل 🍂</div>
             <div class="developer-credit" style="cursor: pointer;" onclick="window.open('https://wa.me/17862927607', '_blank');">المطور: حسن المحمد</div>
         `;
         document.getElementById('switchSubjectBtn').addEventListener('click', () => showSubjectSwitchDialog());
@@ -334,7 +334,7 @@ function cleanTaskText(rawText) {
         }
 
         if (todayTasks.length === 0) {
-            todayContainer.innerHTML = '<div class="subtask-item">✨ لا توجد مهام محددة لهذا اليوم ✨</div>';
+            todayContainer.innerHTML = '<div class="subtask-item">تم تقديم مادة الفيزياء انتهت المهام 👍🏻</div>';
         } else {
             const morning = todayTasks.filter(t => t.period === 'صباحية');
             const evening = todayTasks.filter(t => t.period === 'مسائية');
@@ -515,7 +515,7 @@ taskDiv.innerHTML = `<input type="checkbox" class="subtask-check" data-id="${tas
             todayTasks = allSubTasks.filter(t => t.dayIndex === firstIncompleteDay);
         }
         if (todayTasks.length === 0) {
-            todayContainer.innerHTML = '<div class="subtask-item">✨ لا توجد مهام محددة لهذا اليوم ✨</div>';
+            todayContainer.innerHTML = '<div class="subtask-item">تم تقديم مادة الفيزياء انتهت المهام 👍🏻</div>';
         } else {
             const morning = todayTasks.filter(t => t.period === 'صباحية');
             const evening = todayTasks.filter(t => t.period === 'مسائية');
