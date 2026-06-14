@@ -88,7 +88,18 @@
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 3000; visibility: hidden; opacity: 0; transition: 0.2s; backface-visibility: hidden;}
         .modal.active { visibility: visible; opacity: 1; }
         .modal-content { background: white; width: 90%; max-width: 750px; max-height: 85vh; border-radius: 2rem; padding: 1.8rem; overflow-y: auto; animation: fadeInUp 0.3s; position: relative; }
-        .filter-buttons { display: flex; gap: 15px; justify-content: center; margin-bottom: 20px; }
+        .filter-buttons { 
+    display: flex; 
+    gap: 25px; 
+    justify-content: center; 
+    margin-bottom: 25px; 
+    margin-top: 10px;
+}
+#subjectTabsContainer {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
         .filter-btn { background: #e0e0e0; border: none; padding: 8px 20px; border-radius: 40px; cursor: pointer; font-weight: bold; transition: 0.2s; }
         .filter-btn.active { background: #2c6e3c; color: white; }
         .student-item { padding: 10px 12px; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center; transition: 0.1s; }
@@ -153,6 +164,7 @@
     font-weight: 600;
     font-size: 1rem;
 }
+
  </style>
 </head>
 <body>
@@ -508,7 +520,7 @@
             const todaySpotlight = document.getElementById('todaySpotlight');
             todaySpotlight.insertAdjacentElement('beforebegin', tabsContainer);
         }
-        tabsContainer.innerHTML = `<button id="tabPhysicsTeacher" class="filter-btn ${currentSubject === 'physics' ? 'active' : ''}">⚛️ الفيزياء</button><button id="tabScienceTeacher" class="filter-btn ${currentSubject === 'science' ? 'active' : ''}">🧬 العلوم</button>`;
+        tabsContainer.innerHTML = `<button id="tabPhysicsTeacher" class="filter-btn ${currentSubject === 'physics' ? 'active' : ''}"><i class="fas fa-atom"></i> الفيزياء</button><button id="tabScienceTeacher" class="filter-btn ${currentSubject === 'science' ? 'active' : ''}"><i class="fas fa-dna"></i> العلوم</button>`;
         
         await loadAllStudents();
         // عرض مهام اليوم (نفس عرض الطالب ولكن مع أزرار التفاصيل)
@@ -1095,6 +1107,15 @@ document.querySelectorAll('.modal').forEach(modal => {
             modal.style.opacity = '0';
         }
     });
+});
+// إصلاح زر الإغلاق في نافذة مهام الطالب
+document.getElementById('closeStudentTasksModal')?.addEventListener('click', function() {
+    const modal = document.getElementById('studentTasksModal');
+    if (modal) {
+        modal.classList.remove('active');
+        modal.style.visibility = 'hidden';
+        modal.style.opacity = '0';
+    }
 });
    initApp();
     document.body.addEventListener('click', function once() { initAudio(); document.body.removeEventListener('click', once); }, { once: true });
