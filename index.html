@@ -85,7 +85,7 @@
         .gender-option { flex: 1; padding: 10px; border-radius: 2rem; background: #f0f0f0; cursor: pointer; text-align: center; transition: 0.2s; font-weight: bold; }
         .gender-option.selected { background: #2c6e3c; color: white; }
         .error-message { color: #c0392b; font-size: 0.8rem; margin-top: 5px; display: none; }
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 1000; visibility: hidden; opacity: 0; transition: 0.2s; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 3000; visibility: hidden; opacity: 0; transition: 0.2s; backface-visibility: hidden;}
         .modal.active { visibility: visible; opacity: 1; }
         .modal-content { background: white; width: 90%; max-width: 750px; max-height: 85vh; border-radius: 2rem; padding: 1.8rem; overflow-y: auto; animation: fadeInUp 0.3s; position: relative; }
         .filter-buttons { display: flex; gap: 15px; justify-content: center; margin-bottom: 20px; }
@@ -127,7 +127,33 @@
         .today-period-block { background: #f9f6e8; border-radius: 1.2rem; padding: 0.8rem; border-right: 4px solid #2c7840; margin-bottom: 1rem; }
         .today-period-title { font-weight: 800; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 8px; }
         .info-note { background: #e8f0fe; border-radius: 1rem; padding: 0.6rem 1rem; margin-bottom: 1rem; text-align: center; color: #1a4d2a; font-weight: 500; }
-    </style>
+   /* تحسين بطاقات المواد في لوحة المشرف */
+#subjectTabsContainer .filter-btn {
+    background: linear-gradient(145deg, #f0f0f0, #e0e0e0);
+    border: none;
+    padding: 12px 28px;
+    border-radius: 60px;
+    font-weight: 800;
+    font-size: 1.1rem;
+    transition: all 0.25s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+#subjectTabsContainer .filter-btn.active {
+    background: linear-gradient(145deg, #2c6e3c, #1f5437);
+    color: white;
+    box-shadow: 0 8px 18px rgba(44,110,60,0.3);
+    transform: translateY(-2px);
+}
+#subjectTabsContainer .filter-btn:active {
+    transform: scale(0.96);
+}
+#allStudentsModal .filter-buttons .filter-btn,
+#taskStatsModal .filter-buttons .filter-btn {
+    font-family: 'Tajawal', 'Cairo', sans-serif;
+    font-weight: 600;
+    font-size: 1rem;
+}
+ </style>
 </head>
 <body>
 <div id="toast-physics" class="toast-physics"></div>
@@ -652,9 +678,12 @@
             });
             if (filtered.length===0) listDiv.innerHTML='<div class="student-item">لا يوجد طلاب</div>';
             document.querySelectorAll('#studentsCompletedListModal .student-name').forEach(el => {
-                el.removeEventListener('click', studentClickHandler);
-                el.addEventListener('click', studentClickHandler);
-            });
+    el.removeEventListener('click', studentClickHandler);
+    el.addEventListener('click', function(e) {
+        e.stopPropagation();
+        studentClickHandler.call(this, e);
+    });
+});
         }
         function studentClickHandler(e) {
             const studentId = this.getAttribute('data-student-id');
@@ -679,32 +708,68 @@
 
     // عرض مهام الطالب مع الساعات
     async function showStudentTasks(studentId) {
-        await loadAllStudents();
+        // إغلاق أي نافذة مفتوحة أولاً
+        const existingModal = document.getElementById('studentTasksModal');
+        if (existingModal) existingModal.classList.remove('active');
+        
+        // البحث عن الطالب من الذاكرة المخزنة (بدون إعادة تحميل من قاعدة البيانات)
         const student = allStudents.find(s => s.id === studentId);
-        if (!student) return;
+        if (!student) {
+            console.warn("الطالب غير موجود:", studentId);
+            return;
+        }
+        
         const completedEntries = getStudentCompletedBySubject(student, currentSubject);
-        const completedTasksList = completedEntries.map(entry => {
+        
+        // بناء القائمة بسرعة
+        const completedTasksList = [];
+        for (const entry of completedEntries) {
             const task = allSubTasks.find(t => t.id === entry.taskId);
-            if (!task) return null;
+            if (!task) continue;
             const day = currentSchedule[task.dayIndex];
-            const dateStr = currentSubject==='physics' ? (day ? day.date : '?') : (day ? `اليوم ${day.dayNumber}` : '?');
-            return { text: task.text, completedAt: entry.completedAt, date: dateStr, duration: task.duration };
-        }).filter(t => t !== null);
+            const dateStr = currentSubject === 'physics' ? (day ? day.date : '?') : (day ? `اليوم ${day.dayNumber}` : '?');
+            completedTasksList.push({ 
+                text: task.text, 
+                completedAt: entry.completedAt, 
+                date: dateStr, 
+                duration: task.duration 
+            });
+        }
+        
         const totalHours = getTotalHoursOfPlan();
         const completedHours = getCompletedHoursForStudent(student);
         const percent = totalHours === 0 ? 0 : ((completedHours / totalHours) * 100).toFixed(1);
-        document.getElementById('studentTasksTitle').innerHTML = `✅ مهام ${student.fullName} المنجزة (${completedTasksList.length}/${allSubTasks.length} مهمة) - ${percent}% (${completedHours.toFixed(1)}/${totalHours.toFixed(1)} ساعة)`;
-        const container = document.getElementById('studentTasksList');
-        if (completedTasksList.length === 0) {
-            container.innerHTML = '<div class="student-task-card">📭 لا توجد مهام منجزة بعد</div>';
-        } else {
-            container.innerHTML = completedTasksList.map(task => {
-                const timeDateStr = formatTimeAndDate(task.completedAt);
-                let durationHtml = (currentSubject==='science' && task.duration) ? `<span class="duration-badge" style="background:#2196f3;"><i class="fas fa-clock"></i> ${task.duration} ساعة</span>` : '';
-                return `<div class="student-task-card"><i class="fas fa-check-circle student-task-icon"></i><div style="flex:1;"><div style="font-weight:bold;">${escapeHtml(cleanTaskText(task.text))}</div><div style="font-size:0.75rem; color:#4a6741;">🕒 ${timeDateStr}</div></div>${durationHtml}</div>`;
-            }).join('');
+        
+        // تحديث العنوان
+        const titleEl = document.getElementById('studentTasksTitle');
+        if (titleEl) {
+            titleEl.innerHTML = `✅ مهام ${student.fullName} المنجزة (${completedTasksList.length}/${allSubTasks.length} مهمة) - ${percent}% (${completedHours.toFixed(1)}/${totalHours.toFixed(1)} ساعة)`;
         }
-        document.getElementById('studentTasksModal').classList.add('active');
+        
+        // تحديث القائمة
+        const container = document.getElementById('studentTasksList');
+        if (container) {
+            if (completedTasksList.length === 0) {
+                container.innerHTML = '<div class="student-task-card">📭 لا توجد مهام منجزة بعد</div>';
+            } else {
+                container.innerHTML = completedTasksList.map(task => {
+                    const timeDateStr = formatTimeAndDate(task.completedAt);
+                    let durationHtml = (currentSubject === 'science' && task.duration) ? `<span class="duration-badge" style="background:#2196f3;"><i class="fas fa-clock"></i> ${task.duration} ساعة</span>` : '';
+                    return `<div class="student-task-card"><i class="fas fa-check-circle student-task-icon"></i><div style="flex:1;"><div style="font-weight:bold;">${escapeHtml(cleanTaskText(task.text))}</div><div style="font-size:0.75rem; color:#4a6741;">🕒 ${timeDateStr}</div></div>${durationHtml}</div>`;
+                }).join('');
+            }
+        }
+        
+        // إظهار النافذة مع z-index أعلى
+        const modal = document.getElementById('studentTasksModal');
+        if (modal) {
+            modal.style.visibility = 'visible';
+            modal.style.opacity = '1';
+            modal.classList.add('active');
+            modal.style.zIndex = '3001';
+        }
+        
+        playSound('select');
     }
 
     async function showAllStudentsDialog() {
@@ -1021,7 +1086,17 @@
         }
     }
     addModals();
-    initApp();
+ // إضافة إغلاق النوافذ عند النقر على الخلفية
+document.querySelectorAll('.modal').forEach(modal => {
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            modal.classList.remove('active');
+            modal.style.visibility = 'hidden';
+            modal.style.opacity = '0';
+        }
+    });
+});
+   initApp();
     document.body.addEventListener('click', function once() { initAudio(); document.body.removeEventListener('click', once); }, { once: true });
 </script>
 </body>
