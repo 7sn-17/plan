@@ -751,12 +751,27 @@
         const totalHours = getTotalHoursOfPlan();
         const completedHours = getCompletedHoursForStudent(student);
         const percent = totalHours === 0 ? 0 : ((completedHours / totalHours) * 100).toFixed(1);
+        const taskPercent = allSubTasks.length === 0 ? 0 : ((completedTasksList.length / allSubTasks.length) * 100).toFixed(1);
         
-        // تحديث العنوان
-        const titleEl = document.getElementById('studentTasksTitle');
-        if (titleEl) {
-            titleEl.innerHTML = `✅ مهام ${student.fullName} المنجزة (${completedTasksList.length}/${allSubTasks.length} مهمة) - ${percent}% (${completedHours.toFixed(1)}/${totalHours.toFixed(1)} ساعة)`;
-        }
+// تحديث العنوان بشكل منظم
+const titleEl = document.getElementById('studentTasksTitle');
+if (titleEl) {
+    titleEl.innerHTML = `
+        <div style="text-align:center;">
+            <div style="font-size:1.2rem; margin-bottom:8px;">
+                <i class="fas fa-user-graduate"></i> ${escapeHtml(student.fullName)}
+            </div>
+            <div style="display:flex; justify-content:center; gap:20px; flex-wrap:wrap; font-size:0.9rem;">
+                <span style="background:#e8f5e9; padding:4px 12px; border-radius:20px;">
+                    <i class="fas fa-tasks"></i> المهام: ${completedTasksList.length}/${allSubTasks.length} (${taskPercent}%)
+                </span>
+                <span style="background:#e3f2fd; padding:4px 12px; border-radius:20px;">
+                    <i class="fas fa-clock"></i> الساعات: ${completedHours.toFixed(1)}/${totalHours.toFixed(1)} (${percent}%)
+                </span>
+            </div>
+        </div>
+    `;
+}
         
         // تحديث القائمة
         const container = document.getElementById('studentTasksList');
