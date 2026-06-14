@@ -153,7 +153,49 @@
         .period-title { font-size: 1.25rem; font-weight: 800; margin: 1rem 0 0.8rem; display: flex; align-items: center; gap: 12px; border-right: 4px solid #3c8c40; padding-right: 12px; }
         .today-highlight { background: #fefdf0; border-radius: 2rem; padding: 1.2rem 1.8rem; margin-bottom: 1.5rem; border-right: 10px solid #2c7840; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
         #subjectTabsContainer { margin-bottom: 20px; }
-    </style>
+   /* تأثير الجسيمات المنبثقة */
+.particle-burst {
+    position: fixed;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #ffd700, #ff8c00);
+    pointer-events: none;
+    z-index: 10000;
+    animation: particleFly 0.6s ease-out forwards;
+}
+@keyframes particleFly {
+    0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 0.8;
+    }
+    100% {
+        transform: translate(var(--dx), var(--dy)) scale(0);
+        opacity: 0;
+    }
+}
+
+/* تحسين بطاقات المواد في لوحة المشرف */
+#subjectTabsContainer .filter-btn {
+    background: linear-gradient(145deg, #f0f0f0, #e0e0e0);
+    border: none;
+    padding: 12px 28px;
+    border-radius: 60px;
+    font-weight: 800;
+    font-size: 1.1rem;
+    transition: all 0.25s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+#subjectTabsContainer .filter-btn.active {
+    background: linear-gradient(145deg, #2c6e3c, #1f5437);
+    color: white;
+    box-shadow: 0 8px 18px rgba(44,110,60,0.3);
+    transform: translateY(-2px);
+}
+#subjectTabsContainer .filter-btn:active {
+    transform: scale(0.96);
+}
+ </style>
 </head>
 <body>
 <div id="toast-physics" class="toast-physics"></div>
@@ -1216,12 +1258,20 @@ function refreshSounds() { setTimeout(attachSoundsToButtons, 50); }
         const genderOptions = overlay.querySelectorAll('.gender-option');
         const genderInput = document.getElementById('studentGender');
         genderOptions.forEach(opt => {
-            opt.addEventListener('click', () => {
-                genderOptions.forEach(o => o.classList.remove('selected'));
-                opt.classList.add('selected');
-                genderInput.value = opt.getAttribute('data-gender');
-            });
-        });
+    opt.addEventListener('click', (e) => {
+        genderOptions.forEach(o => o.classList.remove('selected'));
+        opt.classList.add('selected');
+        genderInput.value = opt.getAttribute('data-gender');
+        createParticlesOnGender(e, opt); // ✅ إضافة تأثير الجسيمات
+        // إضافة تأثير تموج صغير (اختياري)
+        const ripple = document.createElement('span');
+        ripple.className = 'ripple-effect';
+        ripple.style.left = `${e.clientX - opt.getBoundingClientRect().left}px`;
+        ripple.style.top = `${e.clientY - opt.getBoundingClientRect().top}px`;
+        opt.appendChild(ripple);
+        setTimeout(() => ripple.remove(), 600);
+    });
+});
         genderOptions[0].classList.add('selected');
         document.getElementById('submitStudentData').addEventListener('click', async () => {
             const btn = document.getElementById('submitStudentData');
@@ -1315,6 +1365,29 @@ document.body.addEventListener('click', function once() {
     initAudio();
     document.body.removeEventListener('click', once);
 }, { once: true });
+// دالة إنشاء جسيمات عند النقر على زر الجنس
+function createParticlesOnGender(e, element) {
+    const rect = element.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    for (let i = 0; i < 12; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const distance = 30 + Math.random() * 50;
+        const dx = Math.cos(angle) * distance;
+        const dy = Math.sin(angle) * distance;
+        const particle = document.createElement('div');
+        particle.className = 'particle-burst';
+        particle.style.left = `${centerX - 4}px`;
+        particle.style.top = `${centerY - 4}px`;
+        particle.style.setProperty('--dx', `${dx}px`);
+        particle.style.setProperty('--dy', `${dy}px`);
+        // ألوان عشوائية جميلة
+        const colors = ['#ffb74d', '#ff8a65', '#81c784', '#4fc3f7', '#ff80ab'];
+        particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+        document.body.appendChild(particle);
+        setTimeout(() => particle.remove(), 600);
+    }
+}
 </script>
 </body>
 </html>
