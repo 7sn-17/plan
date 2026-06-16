@@ -18,10 +18,13 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+    <!-- إضافة مكتبة Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
     <style>
         /* جميع الأنماط كما هي – لم تتغير */
         * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
-        body { font-family: 'Cairo', 'Tajawal', sans-serif; background: radial-gradient(circle at 20% 30%, #c8e6c9, #a5d6a7); padding: 1.5rem; min-height: 100vh; overflow-x: hidden; position: relative; }
+        body { font-family: 'Cairo', 'Tajawal', sans-serif; background: radial-gradient(circle at 20% 30%, #c8e6c9, #a5d6a7); padding: 1.5rem; min-height: 100vh; overflow-x: hidden; position: relative; transition: background 0.8s ease; }
+        body.celebrating { background: radial-gradient(circle at 30% 40%, #f9e79f, #f7dc6f) !important; }
         #particles-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
         .app-container { max-width: 1400px; margin: 0 auto; position: relative; z-index: 2; }
         .hero-area { background: linear-gradient(125deg, #0b4827, #1f7542); border-radius: 2.5rem; padding: 1.2rem 2rem; margin-bottom: 1.5rem; color: white; box-shadow: 0 20px 35px rgba(0,20,0,0.4); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
@@ -253,6 +256,67 @@
     background: #e8f5e9 !important;
     color: #1b5e20 !important;
 }
+
+/* ===== أنماط شهادة الإنجاز الجديدة ===== */
+.certificate-modal .modal-content {
+    background: linear-gradient(145deg, #fef9e7, #fdebd0);
+    border: 6px solid #d4ac0d;
+    border-radius: 2.5rem;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+    max-width: 550px;
+    text-align: center;
+    padding: 2.5rem 1.8rem;
+    position: relative;
+    overflow: visible;
+}
+.certificate-modal .modal-content::before {
+    content: "🏆";
+    position: absolute;
+    top: -20px;
+    left: -20px;
+    font-size: 10rem;
+    opacity: 0.08;
+    transform: rotate(-25deg);
+    filter: drop-shadow(0 4px 10px rgba(0,0,0,0.05));
+    pointer-events: none;
+}
+.certificate-icon { font-size: 4rem; color: #d4ac0d; margin-bottom: 0.2rem; }
+.certificate-title { font-size: 2rem; font-weight: 900; color: #1f3b2c; margin: 0.2rem 0 0.5rem; font-family: 'Tajawal', 'Cairo', sans-serif; letter-spacing: 1px; }
+.certificate-sub { font-size: 1.2rem; color: #5d4e37; margin-bottom: 1.2rem; border-bottom: 2px dashed #d4ac0d; padding-bottom: 0.5rem; }
+.certificate-name { font-size: 2rem; font-weight: 800; color: #0b4827; background: linear-gradient(to right, #0b4827, #2c7840); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin: 0.5rem 0; }
+.certificate-detail { font-size: 1rem; color: #2c3e50; margin: 0.3rem 0; }
+.certificate-detail i { color: #d4ac0d; margin-left: 6px; }
+.certificate-footer { margin-top: 1.2rem; padding-top: 1rem; border-top: 2px solid #d4ac0d; font-size: 0.9rem; color: #5d4e37; }
+.share-wa-btn {
+    background: #25D366;
+    color: white;
+    border: none;
+    padding: 0.8rem 2rem;
+    border-radius: 60px;
+    font-weight: 800;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 0.8rem;
+    box-shadow: 0 8px 18px rgba(37,211,102,0.3);
+}
+.share-wa-btn:hover { transform: scale(1.05); background: #1ebd5e; }
+.share-wa-btn:active { transform: scale(0.96); }
+.cert-close-btn {
+    background: transparent;
+    border: 1px solid #ccc;
+    padding: 0.5rem 1.5rem;
+    border-radius: 40px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 0.8rem;
+    transition: 0.2s;
+    color: #555;
+}
+.cert-close-btn:hover { background: #f0f0f0; }
     </style>
 </head>
 <body>
@@ -314,6 +378,7 @@
     let adminAuthenticated = false;
     let currentSchedule = [];
     let currentSubject = 'physics'; // 'physics' | 'science' | 'islamic'
+    let celebrationTriggered = false; // لمنع تكرار الاحتفال
 
     function escapeHtml(str) { return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); }
     function extractDuration(text) { let match = text.match(/\{(\d+(?:\.\d+)?)\}/); return match ? parseFloat(match[1]) : null; }
@@ -453,6 +518,7 @@
     // ============================================================
     // عرض الطالب
     async function initializeStudentWithSubject(subject) {
+        celebrationTriggered = false;
         currentSubject = subject;
         if (subject === 'physics') { await loadScheduleFromFirebase('physics'); currentSchedule = scheduleDataPhysics; }
         else if (subject === 'science') { await loadScheduleFromFirebase('science'); currentSchedule = scheduleDataScience; }
@@ -465,7 +531,7 @@
         const subjectNames = { physics: 'الفيزياء', science: 'العلوم', islamic: 'الاسلامية' };
         const icons = { physics: 'fa-flask', science: 'fa-dna', islamic: 'fa-mosque' };
         document.getElementById('appContainer').innerHTML = `
-            <div class="hero-area"><div class="logo-title"><h1><i class="fas fa-seedling"></i>  خطة ${subjectNames[currentSubject]} <i class="fas ${icons[currentSubject]}"></i></h1></div>
+            <div class="hero-area"><div class="logo-title"><h1><i class="fas ${icons[currentSubject]}"></i>  خطة ${subjectNames[currentSubject]}</h1></div>
             <button id="switchSubjectBtn" class="btn-icon"><i class="fas fa-exchange-alt"></i> تبديل المادة</button></div>
             <div class="stats-panel"><div><i class="fas fa-chart-line"></i> التقدم الكلي: <strong id="globalDone">0</strong> / <strong id="globalTotal">0</strong></div><div class="progress-bg"><div class="progress-fill-global" id="globalProgressFill"></div></div></div>
             <div class="today-highlight" id="todaySpotlight"><div style="font-weight:800; margin-bottom:8px;"><i class="fas fa-calendar-day"></i> 🟢 مهام اليوم المباشرة</div><div id="todayTasksList"></div></div>
@@ -576,6 +642,12 @@
         });
         attachTaskCheckEvents();
         refreshSounds();
+
+        // ===== التحقق من الإكمال لتشغيل الاحتفال =====
+        if (totalTasks > 0 && completedCount === totalTasks && !celebrationTriggered) {
+            const subjectName = { physics: 'الفيزياء', science: 'العلوم', islamic: 'الاسلامية' }[currentSubject];
+            triggerCelebration(subjectName);
+        }
     }
     function attachTaskCheckEvents() {
         document.querySelectorAll('.subtask-check').forEach(cb => {
@@ -593,12 +665,14 @@
         await saveStudentProgress(currentStudent.id, completed, currentSubject);
         const field = currentSubject==='physics' ? 'completedTasksPhysics' : (currentSubject==='science' ? 'completedTasksScience' : 'completedTasksIslamic');
         currentStudent[field] = completed;
+        celebrationTriggered = false;
         renderStudentView();
         playBeep();
     }
     async function switchSubject(subject) {
         if (subject===currentSubject) return;
         playSound('select');
+        celebrationTriggered = false;
         currentSubject = subject;
         if (subject==='physics') { await loadScheduleFromFirebase('physics'); currentSchedule = scheduleDataPhysics; }
         else if (subject==='science') { await loadScheduleFromFirebase('science'); currentSchedule = scheduleDataScience; }
@@ -1155,6 +1229,158 @@
 
     function showCustomModal(message) { const modal=document.getElementById('customMessageModal'); document.getElementById('customMessageText').innerText=message; modal.classList.add('active'); setTimeout(()=>modal.classList.remove('active'),2000); }
     function showToast(message, isError=false) { const toast=document.getElementById('toast-physics'); if(!toast) return; toast.textContent=message; toast.classList.remove('show','error'); if(isError) toast.classList.add('error'); void toast.offsetWidth; toast.classList.add('show'); clearTimeout(toast._timeout); toast._timeout=setTimeout(()=>{ toast.classList.remove('show'); },2400); }
+
+    // ===== صورة التصفيق (Clap Sound) =====
+    function playClapSound() {
+        try {
+            if (!audioContext) initAudio();
+            if (!audioContext) return;
+            const duration = 1.8;
+            const bufferSize = audioContext.sampleRate * duration;
+            const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+            const data = buffer.getChannelData(0);
+            // توليد ضوضاء بيضاء مع نبضات تشبه التصفيق
+            for (let i = 0; i < bufferSize; i++) {
+                const t = i / audioContext.sampleRate;
+                // محاكاة التصفيق: دفعات عشوائية متقطعة
+                const envelope = Math.sin(t * 30) * 0.5 + 0.5; // موجات سريعة
+                const burst = Math.random() > 0.6 ? 1 : 0.3; // كثافة عشوائية
+                data[i] = (Math.random() * 2 - 1) * envelope * burst * 0.15;
+            }
+            const source = audioContext.createBufferSource();
+            source.buffer = buffer;
+            const gain = audioContext.createGain();
+            gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+            source.connect(gain);
+            gain.connect(audioContext.destination);
+            source.start();
+            source.stop(audioContext.currentTime + duration);
+        } catch(e) { console.warn('Clap error:', e); }
+    }
+
+    // ===== دالة الاحتفال =====
+    function triggerCelebration(subjectName) {
+        if (celebrationTriggered) return;
+        celebrationTriggered = true;
+
+        // 1. تأثير Confetti
+        if (typeof confetti === 'function') {
+            confetti({
+                particleCount: 150,
+                spread: 80,
+                origin: { y: 0.6 },
+                startVelocity: 25,
+                colors: ['#f1c40f', '#e67e22', '#2ecc71', '#3498db', '#e74c3c', '#9b59b6']
+            });
+            setTimeout(() => {
+                confetti({
+                    particleCount: 80,
+                    spread: 60,
+                    origin: { y: 0.4 },
+                    startVelocity: 20,
+                    colors: ['#f39c12', '#1abc9c', '#2980b9', '#d35400']
+                });
+            }, 400);
+            setTimeout(() => {
+                confetti({
+                    particleCount: 100,
+                    spread: 100,
+                    origin: { y: 0.7 },
+                    startVelocity: 30,
+                    colors: ['#ff6b6b', '#feca57', '#48dbfb', '#1dd1a1']
+                });
+            }, 900);
+        }
+
+        // 2. تغيير خلفية الصفحة مؤقتاً
+        document.body.classList.add('celebrating');
+        setTimeout(() => document.body.classList.remove('celebrating'), 5000);
+
+        // 3. صوت التصفيق
+        playClapSound();
+
+        // 4. عرض شهادة الإنجاز بعد 0.8 ثانية (للتزامن مع الذروة)
+        setTimeout(() => {
+            showCelebrationCertificate(subjectName);
+        }, 800);
+    }
+
+    function showCelebrationCertificate(subjectName) {
+    const name = currentStudent ? currentStudent.fullName : 'الطالب';
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
+    const taskCount = allSubTasks.length;
+    const hourCount = getTotalHoursOfPlan();
+
+    const modal = document.createElement('div');
+    modal.className = 'modal active certificate-modal';
+    modal.style.zIndex = '4000';
+
+    const subjectIcon = {
+        physics: 'fa-atom',
+        science: 'fa-dna',
+        islamic: 'fa-mosque'
+    };
+    const subjectNameMap = {
+        physics: 'الفيزياء',
+        science: 'العلوم',
+        islamic: 'التربية الإسلامية'
+    };
+    const icon = subjectIcon[currentSubject] || 'fa-graduation-cap';
+    const subName = subjectNameMap[currentSubject] || subjectName;
+
+    // الرسالة المطلوبة مع الهاشتاج في سطر منفصل
+    const shareText = `🏆 اللهم لك الحمد..
+أنهيت خطة ${subName} المكثفة كاملة دون تقصير
+> إجمالي الساعات: ${totalHours} ساعة
+> تاريخ الإنجاز: ${completionDate}
+كانت رحلة شاقة، لكن النتيجة تستحق العناء.
+#خطتك_2026 #نجاح_بإذن_الله
+شارك إنجازك مع أصدقاءك:
+> https://7sn-17.github.io/plan`;
+
+    modal.innerHTML = `
+        <div class="modal-content" style="text-align:center;">
+            <div class="certificate-icon">🏅</div>
+            <div class="certificate-title">شهادة إنجاز</div>
+            <div class="certificate-sub"><i class="fas ${icon}"></i> خطة ${subName}</div>
+            <div class="certificate-name">${escapeHtml(name)}</div>
+            <div class="certificate-detail"><i class="fas fa-calendar-check"></i> تم الإكمال بتاريخ: ${dateStr}</div>
+            <div class="certificate-detail"><i class="fas fa-tasks"></i> عدد المهام: ${taskCount}</div>
+            <div class="certificate-detail"><i class="fas fa-clock"></i> إجمالي الساعات: ${hourCount.toFixed(1)} ساعة</div>
+            <div class="certificate-footer">🌟 طريق النجاح يبدأ بخطوة منظمة، وأنت خطوتها بثبات 🌟</div>
+            <button id="shareWaBtn" class="share-wa-btn">
+                <i class="fab fa-whatsapp"></i> مشاركة الإنجاز
+            </button>
+            <br>
+            <button class="cert-close-btn" onclick="this.closest('.modal').remove(); celebrationTriggered=false;">إغلاق</button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+
+    // مستمع زر مشاركة الواتساب (يعمل على جميع الأجهزة)
+    const shareBtn = modal.querySelector('#shareWaBtn');
+    shareBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const waUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+        
+        // محاولة فتح التطبيق مباشرة على الهواتف
+        if (/android|iphone|ipad|ipod/i.test(navigator.userAgent)) {
+            window.location.href = waUrl;
+        } else {
+            window.open(waUrl, '_blank');
+        }
+    });
+
+    // إغلاق عند النقر خارج المحتوى
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            modal.remove();
+            celebrationTriggered = false;
+        }
+    });
+}
 
     // ========== جسيمات الخلفية ==========
     const canvas = document.getElementById('particles-canvas'); const ctx = canvas.getContext('2d'); let particles = [];
