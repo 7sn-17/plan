@@ -375,11 +375,31 @@ body.no-scroll {
 
     // ***** المادة الجديدة: الإسلامية *****
     let scheduleDataIslamic = [
-        { dayNumber: 1, weekday: "الأربعاء", morning: "", evening: "" },
-        { dayNumber: 2, weekday: "الخميس", morning: "", evening: "" },
-        { dayNumber: 3, weekday: "الجمعة", morning: "", evening: "" },
-        { dayNumber: 4, weekday: "السبت", morning: "", evening: "" },
-    ];
+    { 
+        dayNumber: 1, 
+        weekday: "الأربعاء", 
+        morning: "تلاوة (2)\nاستحفاظ (1)\nحديث (2)", 
+        evening: "حضارة (3)\nأم سليم (1)" 
+    },
+    { 
+        dayNumber: 2, 
+        weekday: "الخميس", 
+        morning: "تلاوة (2)\nاستحفاظ (1)\nحديث (2)", 
+        evening: "أسرة (3)\nنظام المال (1)" 
+    },
+    { 
+        dayNumber: 3, 
+        weekday: "الجمعة", 
+        morning: "تلاوة (2)\nاستحفاظ (1)\nحديث (2)", 
+        evening: "أسرة (3)\nهدي النبي (1)" 
+    },
+    { 
+        dayNumber: 4, 
+        weekday: "السبت", 
+        morning: "تلاوة (1)\nاستحفاظ (1)\nحديث (1)\nقيود الملكية (1)", 
+        evening: "العلاقات الدولية (3)\nجعفر (1)" 
+    },
+];
 
     function safeLocalStorageSet(key, value) { try { localStorage.setItem(key, value); return true; } catch(e) { return false; } }
     function safeLocalStorageGet(key) { try { return localStorage.getItem(key); } catch(e) { return null; } }
