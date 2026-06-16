@@ -184,6 +184,32 @@
             overflow-y: auto;
             padding-bottom: 10px;
         }
+        /* تحسين بطاقات المواد في لوحة المشرف */
+#subjectTabsContainer .filter-btn {
+    background: linear-gradient(145deg, #f0f0f0, #e0e0e0);
+    border: none;
+    padding: 12px 28px;
+    border-radius: 60px;
+    font-weight: 800;
+    font-size: 1.1rem;
+    transition: all 0.25s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+#subjectTabsContainer .filter-btn.active {
+    background: linear-gradient(145deg, #2c6e3c, #1f5437);
+    color: white;
+    box-shadow: 0 8px 18px rgba(44,110,60,0.3);
+    transform: translateY(-2px);
+}
+#subjectTabsContainer .filter-btn:active {
+    transform: scale(0.96);
+}
+#allStudentsModal .filter-buttons .filter-btn,
+#taskStatsModal .filter-buttons .filter-btn {
+    font-family: 'Tajawal', 'Cairo', sans-serif;
+    font-weight: 600;
+    font-size: 1rem;
+}
     </style>
 </head>
 <body>
