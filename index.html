@@ -1313,9 +1313,11 @@
     const taskCount = allSubTasks.length;
     const hourCount = getTotalHoursOfPlan();
 
-    const modal = document.createElement('div');
-    modal.className = 'modal active certificate-modal';
-    modal.style.zIndex = '4000';
+    // إزالة أي شهادة سابقة
+    const existingCert = document.querySelector('.certificate-modal');
+    if (existingCert) {
+        existingCert.remove();
+    }
 
     const subjectIcon = {
         physics: 'fa-atom',
@@ -1330,42 +1332,63 @@
     const icon = subjectIcon[currentSubject] || 'fa-graduation-cap';
     const subName = subjectNameMap[currentSubject] || subjectName;
 
-    // الرسالة المطلوبة مع الهاشتاج في سطر منفصل
+    const modal = document.createElement('div');
+    modal.className = 'modal active certificate-modal';
+    modal.id = 'certificateModal';
+    modal.style.zIndex = '5000';
+    modal.style.position = 'fixed';
+    modal.style.top = '0';
+    modal.style.left = '0';
+    modal.style.width = '100%';
+    modal.style.height = '100%';
+    modal.style.background = 'rgba(0,0,0,0.85)';
+    modal.style.backdropFilter = 'blur(12px)';
+    modal.style.display = 'flex';
+    modal.style.alignItems = 'center';
+    modal.style.justifyContent = 'center';
+    modal.style.visibility = 'visible';
+    modal.style.opacity = '1';
+
     const shareText = `🏆 اللهم لك الحمد..
 أنهيت خطة ${subName} المكثفة كاملة دون تقصير
-> إجمالي الساعات: ${totalHours} ساعة
-> تاريخ الإنجاز: ${completionDate}
+> إجمالي الساعات: ${hourCount.toFixed(1)} ساعة
+> تاريخ الإنجاز: ${dateStr}
 كانت رحلة شاقة، لكن النتيجة تستحق العناء.
 #خطتك_2026 #نجاح_بإذن_الله
 شارك إنجازك مع أصدقاءك:
 > https://7sn-17.github.io/plan`;
 
     modal.innerHTML = `
-        <div class="modal-content" style="text-align:center;">
-            <div class="certificate-icon">🏅</div>
-            <div class="certificate-title">شهادة إنجاز</div>
-            <div class="certificate-sub"><i class="fas ${icon}"></i> خطة ${subName}</div>
-            <div class="certificate-name">${escapeHtml(name)}</div>
-            <div class="certificate-detail"><i class="fas fa-calendar-check"></i> تم الإكمال بتاريخ: ${dateStr}</div>
-            <div class="certificate-detail"><i class="fas fa-tasks"></i> عدد المهام: ${taskCount}</div>
-            <div class="certificate-detail"><i class="fas fa-clock"></i> إجمالي الساعات: ${hourCount.toFixed(1)} ساعة</div>
-            <div class="certificate-footer">🌟 طريق النجاح يبدأ بخطوة منظمة، وأنت خطوتها بثبات 🌟</div>
-            <button id="shareWaBtn" class="share-wa-btn">
+        <div class="modal-content" style="text-align:center; max-width:550px; background: linear-gradient(145deg, #fef9e7, #fdebd0); border: 6px solid #d4ac0d; border-radius: 2.5rem; box-shadow: 0 30px 60px rgba(0,0,0,0.4); padding: 2.5rem 1.8rem; position: relative; overflow: visible; animation: fadeInUp 0.4s ease;">
+            <!-- الكأس في الخلفية فقط (كما كان في الأصل) -->
+            <div style="position: absolute; top: -20px; left: -20px; font-size: 10rem; opacity: 0.08; transform: rotate(-25deg); pointer-events: none;">🏆</div>
+            
+            <!-- الميدالية في الأمام (كما كان في الأصل) -->
+            <div style="font-size: 4rem; color: #d4ac0d; margin-bottom: 0.2rem;">🏅</div>
+            
+            <div style="font-size: 2rem; font-weight: 900; color: #1f3b2c; margin: 0.2rem 0 0.5rem; font-family: 'Tajawal', 'Cairo', sans-serif; letter-spacing: 1px;">شهادة إنجاز</div>
+            <div style="font-size: 1.2rem; color: #5d4e37; margin-bottom: 1.2rem; border-bottom: 2px dashed #d4ac0d; padding-bottom: 0.5rem;"><i class="fas ${icon}"></i> خطة ${subName}</div>
+            <div style="font-size: 2rem; font-weight: 800; color: #0b4827; background: linear-gradient(to right, #0b4827, #2c7840); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin: 0.5rem 0;">${escapeHtml(name)}</div>
+            <div style="font-size: 1rem; color: #2c3e50; margin: 0.3rem 0;"><i class="fas fa-calendar-check" style="color: #d4ac0d; margin-left: 6px;"></i> تم الإكمال بتاريخ: ${dateStr}</div>
+            <div style="font-size: 1rem; color: #2c3e50; margin: 0.3rem 0;"><i class="fas fa-tasks" style="color: #d4ac0d; margin-left: 6px;"></i> عدد المهام: ${taskCount}</div>
+            <div style="font-size: 1rem; color: #2c3e50; margin: 0.3rem 0;"><i class="fas fa-clock" style="color: #d4ac0d; margin-left: 6px;"></i> إجمالي الساعات: ${hourCount.toFixed(1)} ساعة</div>
+            <div style="margin-top: 1.2rem; padding-top: 1rem; border-top: 2px solid #d4ac0d; font-size: 0.9rem; color: #5d4e37;">🌟 طريق النجاح يبدأ بخطوة منظمة، وأنت خطوتها بثبات 🌟</div>
+            <button id="shareWaBtnCert" class="share-wa-btn" style="background: #25D366; color: white; border: none; padding: 0.8rem 2rem; border-radius: 60px; font-weight: 800; font-size: 1.1rem; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 12px; margin-top: 0.8rem; box-shadow: 0 8px 18px rgba(37,211,102,0.3);">
                 <i class="fab fa-whatsapp"></i> مشاركة الإنجاز
             </button>
             <br>
-            <button class="cert-close-btn" onclick="this.closest('.modal').remove(); celebrationTriggered=false;">إغلاق</button>
+            <button id="closeCertBtn" style="background: transparent; border: 1px solid #ccc; padding: 0.5rem 1.5rem; border-radius: 40px; font-weight: 600; cursor: pointer; margin-top: 0.8rem; transition: 0.2s; color: #555;">
+                إغلاق
+            </button>
         </div>
     `;
+
     document.body.appendChild(modal);
 
-    // مستمع زر مشاركة الواتساب (يعمل على جميع الأجهزة)
-    const shareBtn = modal.querySelector('#shareWaBtn');
-    shareBtn.addEventListener('click', function(e) {
+    // زر مشاركة واتساب
+    document.getElementById('shareWaBtnCert').addEventListener('click', function(e) {
         e.stopPropagation();
         const waUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
-        
-        // محاولة فتح التطبيق مباشرة على الهواتف
         if (/android|iphone|ipad|ipod/i.test(navigator.userAgent)) {
             window.location.href = waUrl;
         } else {
@@ -1373,13 +1396,34 @@
         }
     });
 
+    // زر الإغلاق
+    document.getElementById('closeCertBtn').addEventListener('click', function() {
+        closeCertificate();
+    });
+
     // إغلاق عند النقر خارج المحتوى
     modal.addEventListener('click', function(e) {
         if (e.target === modal) {
-            modal.remove();
-            celebrationTriggered = false;
+            closeCertificate();
         }
     });
+
+    // إغلاق عند الضغط على ESC
+    document.addEventListener('keydown', function escHandler(e) {
+        if (e.key === 'Escape' && document.getElementById('certificateModal')) {
+            closeCertificate();
+            document.removeEventListener('keydown', escHandler);
+        }
+    });
+}
+
+// دالة مساعدة لإغلاق الشهادة بشكل نظيف
+function closeCertificate() {
+    const modal = document.getElementById('certificateModal');
+    if (modal) {
+        modal.remove();
+    }
+    celebrationTriggered = false;
 }
 
     // ========== جسيمات الخلفية ==========
