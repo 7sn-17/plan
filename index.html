@@ -1378,10 +1378,30 @@ function attachTaskCheckEvents() {
                 duration: task.duration 
             });
         }
-        const totalHours = getTotalHoursOfPlan();
-        const completedHours = getCompletedHoursForStudent(student);
-        const percent = totalHours === 0 ? 0 : ((completedHours / totalHours) * 100).toFixed(1);
-        const taskPercent = allSubTasks.length === 0 ? 0 : ((completedTasksList.length / allSubTasks.length) * 100).toFixed(1);
+        // حساب المهام (يظهر دائماً)
+const taskPercent = allSubTasks.length === 0 ? 0 : ((completedTasksList.length / allSubTasks.length) * 100).toFixed(1);
+
+// حساب الوحدات (ساعات أو دروس)
+let totalUnits = 0;
+let completedUnits = 0;
+let unitLabel = '';
+
+if (currentSubject === 'physics') {
+    // الفيزياء: نفس النظام القديم (مهام فقط)
+    totalUnits = 0;
+    completedUnits = 0;
+    unitLabel = '';
+} else if (currentSubject === 'science') {
+    // العلوم: ساعات
+    totalUnits = getTotalHoursOfPlan();
+    completedUnits = getCompletedHoursForStudent(student);
+    unitLabel = 'ساعات';
+} else if (currentSubject === 'islamic') {
+    // الديانة: دروس (نفس نظام العلوم تماماً)
+    totalUnits = getTotalHoursOfPlan();
+    completedUnits = getCompletedHoursForStudent(student);
+    unitLabel = 'دروس';
+}
         const titleEl = document.getElementById('studentTasksTitle');
         if (titleEl) {
             titleEl.innerHTML = `
@@ -1393,9 +1413,11 @@ function attachTaskCheckEvents() {
                         <span style="background:#e8f5e9; padding:4px 12px; border-radius:20px;">
                             <i class="fas fa-tasks"></i> المهام: ${completedTasksList.length}/${allSubTasks.length} (${taskPercent}%)
                         </span>
-                        <span style="background:#e3f2fd; padding:4px 12px; border-radius:20px;">
-                            <i class="fas fa-clock"></i> الساعات: ${completedHours.toFixed(1)}/${totalHours.toFixed(1)} (${percent}%)
-                        </span>
+                        ${(currentSubject === 'science' || currentSubject === 'islamic') ? `
+<span style="background:#e3f2fd; padding:4px 12px; border-radius:20px;">
+    <i class="fas fa-clock"></i> ${unitLabel}: ${completedUnits.toFixed(1)}/${totalUnits.toFixed(1)} (${percent}%)
+</span>
+` : ''}
                     </div>
                 </div>
             `;
@@ -1674,7 +1696,16 @@ function attachTaskCheckEvents() {
     const now = new Date();
     const dateStr = now.toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
     const taskCount = allSubTasks.length;
-    const hourCount = getTotalHoursOfPlan();
+    let totalUnits = getTotalHoursOfPlan();
+let unitLabel = 'ساعات';
+
+if (currentSubject === 'islamic') {
+    unitLabel = 'دروس';
+} else if (currentSubject === 'science') {
+    unitLabel = 'ساعات';
+} else if (currentSubject === 'physics') {
+    unitLabel = 'مهام';
+}
 
     // إزالة أي شهادة سابقة
     const existingCert = document.querySelector('.certificate-modal');
@@ -1712,13 +1743,28 @@ function attachTaskCheckEvents() {
     modal.style.visibility = 'visible';
     modal.style.opacity = '1';
 
-    const shareText = `🏆 اللهم لك الحمد..
-أنهيت خطة ${subName} المكثفة كاملة دون تقصير
-> إجمالي الساعات: ${hourCount.toFixed(1)} ساعة
-> تاريخ الإنجاز: ${dateStr}
-كانت رحلة شاقة، لكن النتيجة تستحق العناء.
+    let totalUnits = getTotalHoursOfPlan();
+let unitLabel = 'الساعات';
+let unitText = 'ساعة';
+
+if (currentSubject === 'islamic') {
+    unitLabel = 'الدروس';
+    unitText = 'درساً';
+} else if (currentSubject === 'science') {
+    unitLabel = 'الساعات';
+    unitText = 'ساعة';
+} else if (currentSubject === 'physics') {
+    unitLabel = 'المهام';
+    unitText = 'مهمة';
+}
+
+const shareText = `🏆 *اللهم لك الحمد..*
+✅ أنهيت خطة *${subName}* المكثفة كاملة دون تقصير
+> 📚 إجمالي ${unitLabel}: ${totalUnits.toFixed(1)} ${unitText}
+> 📅 تاريخ الإنجاز: ${dateStr}
+💪 كانت رحلة شاقة، لكن النتيجة تستحق العناء.
 #خطتك_2026 #نجاح_بإذن_الله
-شارك إنجازك مع أصدقاءك:
+📱 شارك إنجازك مع أصدقاءك:
 > https://7sn-17.github.io/plan`;
 
     modal.innerHTML = `
@@ -1733,7 +1779,10 @@ function attachTaskCheckEvents() {
             <div style="font-size: 2rem; font-weight: 800; color: #0b4827; background: linear-gradient(to right, #0b4827, #2c7840); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin: 0.5rem 0;">${escapeHtml(name)}</div>
             <div style="font-size: 1rem; color: #2c3e50; margin: 0.3rem 0;"><i class="fas fa-calendar-check" style="color: #d4ac0d; margin-left: 6px;"></i> تم الإكمال بتاريخ: ${dateStr}</div>
             <div style="font-size: 1rem; color: #2c3e50; margin: 0.3rem 0;"><i class="fas fa-tasks" style="color: #d4ac0d; margin-left: 6px;"></i> عدد المهام: ${taskCount}</div>
-            <div style="font-size: 1rem; color: #2c3e50; margin: 0.3rem 0;"><i class="fas fa-clock" style="color: #d4ac0d; margin-left: 6px;"></i> إجمالي الساعات: ${hourCount.toFixed(1)} ساعة</div>
+            <div style="font-size: 1rem; color: #2c3e50; margin: 0.3rem 0;">
+    <i class="fas fa-clock" style="color: #d4ac0d; margin-left: 6px;"></i> 
+    إجمالي ${unitLabel}: ${totalUnits.toFixed(1)} ${unitLabel === 'دروس' ? 'درساً' : (unitLabel === 'ساعات' ? 'ساعة' : 'مهمة')}
+</div>
             <div style="margin-top: 1.2rem; padding-top: 1rem; border-top: 2px solid #d4ac0d; font-size: 0.9rem; color: #5d4e37;">🌟 طريق النجاح يبدأ بخطوة منظمة، وأنت خطوتها بثبات 🌟</div>
             <button id="shareWaBtnCert" class="share-wa-btn" style="background: #25D366; color: white; border: none; padding: 0.8rem 2rem; border-radius: 60px; font-weight: 800; font-size: 1.1rem; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 12px; margin-top: 0.8rem; box-shadow: 0 8px 18px rgba(37,211,102,0.3);">
                 <i class="fab fa-whatsapp"></i> مشاركة الإنجاز
