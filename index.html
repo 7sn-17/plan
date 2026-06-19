@@ -1194,8 +1194,8 @@ function attachTaskCheckEvents() {
     if (todayTasks.length === 0) {
         todayContainer.innerHTML = '<div class="subtask-item">✅ لا توجد مهام لهذا اليوم</div>';
     } else {
-        const morning = todayTasks.filter(t => t.period === 'صباحية');
-        const evening = todayTasks.filter(t => t.period === 'مسائية');
+        const morning = todayTasks.filter(t => t.period === 'الفترة الصباحية');
+        const evening = todayTasks.filter(t => t.period === 'الفترة المسائية');
         const wrapper = document.createElement('div');
         wrapper.className = 'today-tasks-split';
 
@@ -1238,8 +1238,8 @@ function attachTaskCheckEvents() {
     daysContainer.innerHTML = '';
     for (let idx = 0; idx < currentSchedule.length; idx++) {
         const day = currentSchedule[idx];
-        const morningTasks = allSubTasks.filter(t => t.dayIndex === idx && t.period === 'صباحية');
-        const eveningTasks = allSubTasks.filter(t => t.dayIndex === idx && t.period === 'مسائية');
+        const morningTasks = allSubTasks.filter(t => t.dayIndex === idx && t.period === 'الفترة الصباحية');
+        const eveningTasks = allSubTasks.filter(t => t.dayIndex === idx && t.period === 'الفترة المسائية');
         const isToday = (currentSubject === 'physics' && day.date === `${new Date().getDate()}/${new Date().getMonth()+1}`);
         const dayCard = document.createElement('div');
         dayCard.className = `day-card ${isToday ? 'today-active' : ''}`;
@@ -1741,8 +1741,8 @@ async function showStudentTasks(studentId) {
         }
         let tempSubTasks = []; let idCounter=0;
         newDays.forEach((day,dayIdx)=>{
-            splitSub(day.morning).forEach(text=>{ let duration=(currentSubject==='science'||currentSubject==='islamic')?extractDuration(text):1; tempSubTasks.push({ id:`task_${idCounter++}`, dayIndex:dayIdx, period:'صباحية', text, duration }); });
-            splitSub(day.evening).forEach(text=>{ let duration=(currentSubject==='science'||currentSubject==='islamic')?extractDuration(text):1; tempSubTasks.push({ id:`task_${idCounter++}`, dayIndex:dayIdx, period:'مسائية', text, duration }); });
+            splitSub(day.morning).forEach(text=>{ let duration=(currentSubject==='science'||currentSubject==='islamic')?extractDuration(text):1; tempSubTasks.push({ id:`task_${idCounter++}`, dayIndex:dayIdx, period:'الفترة الصباحية', text, duration }); });
+            splitSub(day.evening).forEach(text=>{ let duration=(currentSubject==='science'||currentSubject==='islamic')?extractDuration(text):1; tempSubTasks.push({ id:`task_${idCounter++}`, dayIndex:dayIdx, period:'الفترة المسائية', text, duration }); });
         });
         const taskTransferMap = new Map();
         for (let newTask of tempSubTasks) {
