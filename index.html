@@ -555,19 +555,31 @@ body.no-scroll {
     }
 
     // ========== الساعات ==========
-    function getTotalHoursOfPlan() {
-    // ترجع إجمالي الوحدات (ساعات أو دروس حسب المادة)
+    // حساب إجمالي ساعات الخطة
+function getTotalHoursOfPlan() {
     return allSubTasks.reduce((sum, task) => sum + (task.duration || 0), 0);
 }
-    function getCompletedHoursForStudent(student) {
-        const completedEntries = getStudentCompletedBySubject(student, currentSubject);
-        let total = 0;
-        completedEntries.forEach(entry => {
-            const task = allSubTasks.find(t => t.id === entry.taskId);
-            if (task && task.duration) total += task.duration;
-        });
-        return total;
+
+// حساب الساعات المكتملة للطالب
+function getCompletedHoursForStudent(student) {
+    const completedEntries = getStudentCompletedBySubject(student, currentSubject);
+    let total = 0;
+    for (const entry of completedEntries) {
+        // البحث عن المهمة باستخدام taskId أو المعلومات الإضافية
+        let task = allSubTasks.find(t => t.id === entry.taskId);
+        if (!task && entry.dayIndex !== undefined && entry.period && entry.text) {
+            task = allSubTasks.find(t => 
+                t.dayIndex === entry.dayIndex && 
+                t.period === entry.period && 
+                t.text === entry.text
+            );
+        }
+        if (task && task.duration) {
+            total += task.duration;
+        }
     }
+    return total;
+}
     // ================================
 
     function rebuildSubtaskIds() {
@@ -1019,33 +1031,67 @@ function attachTaskCheckEvents() {
 }
 
     async function handleTaskToggle(e) {
-        const cb = e.target;
-        const taskId = cb.getAttribute('data-id');
-        if (!currentStudent) return;
-        let completed = getStudentCompletedBySubject(currentStudent, currentSubject);
-        if (cb.checked) { playSound('complete'); completed.push({ taskId, completedAt: Date.now() }); }
-        else { completed = completed.filter(entry => entry.taskId !== taskId); }
-        await saveStudentProgress(currentStudent.id, completed, currentSubject);
-        const field = currentSubject==='physics' ? 'completedTasksPhysics' : (currentSubject==='science' ? 'completedTasksScience' : 'completedTasksIslamic');
-        currentStudent[field] = completed;
-        celebrationTriggered = false;
-        renderStudentView();
-        playBeep();
+    const cb = e.target;
+    const taskId = cb.getAttribute('data-id');
+    if (!currentStudent) return;
+    
+    let completed = getStudentCompletedBySubject(currentStudent, currentSubject);
+    const task = allSubTasks.find(t => t.id === taskId);
+    
+    if (cb.checked) {
+        playSound('complete');
+        // ✅ حفظ معلومات إضافية لتسهيل الاسترجاع
+        completed.push({ 
+            taskId, 
+            completedAt: Date.now(),
+            dayIndex: task?.dayIndex,
+            period: task?.period,
+            text: task?.text,
+            duration: task?.duration
+        });
+    } else {
+        completed = completed.filter(entry => entry.taskId !== taskId);
     }
+    
+    await saveStudentProgress(currentStudent.id, completed, currentSubject);
+    const field = currentSubject === 'physics' ? 'completedTasksPhysics' : 
+                  (currentSubject === 'science' ? 'completedTasksScience' : 'completedTasksIslamic');
+    currentStudent[field] = completed;
+    celebrationTriggered = false;
+    renderStudentView();
+    playBeep();
+}
     async function switchSubject(subject) {
-        if (subject===currentSubject) return;
-        playSound('select');
-        celebrationTriggered = false;
-        currentSubject = subject;
-        if (subject==='physics') { await loadScheduleFromFirebase('physics'); currentSchedule = scheduleDataPhysics; }
-        else if (subject==='science') { await loadScheduleFromFirebase('science'); currentSchedule = scheduleDataScience; }
-        else { await loadScheduleFromFirebase('islamic'); currentSchedule = scheduleDataIslamic; }
-        rebuildSubtaskIds();
-        buildStudentUI();
-        renderStudentView();
-        const names = { physics: 'الفيزياء', science: 'العلوم', islamic: 'الاسلامية' };
-        showToast(`تم التبديل إلى ${names[subject]}`);
+    if (subject === currentSubject) return;
+    
+    playSound('select');
+    celebrationTriggered = false;
+    
+    // ✅ تنظيف البيانات القديمة
+    allSubTasks = [];
+    currentSchedule = [];
+    currentSubject = subject;
+    
+    if (subject === 'physics') { 
+        await loadScheduleFromFirebase('physics'); 
+        currentSchedule = scheduleDataPhysics; 
     }
+    else if (subject === 'science') { 
+        await loadScheduleFromFirebase('science'); 
+        currentSchedule = scheduleDataScience; 
+    }
+    else { 
+        await loadScheduleFromFirebase('islamic'); 
+        currentSchedule = scheduleDataIslamic; 
+    }
+    
+    rebuildSubtaskIds();
+    buildStudentUI();
+    renderStudentView();
+    
+    const names = { physics: 'الفيزياء', science: 'العلوم', islamic: 'التربية الإسلامية' };
+    showToast(`تم التبديل إلى مادة ${names[subject]}`);
+}
     function showSubjectSwitchDialog() {
     const modal = document.createElement('div'); 
     modal.className = 'modal active'; 
@@ -1358,91 +1404,215 @@ function attachTaskCheckEvents() {
         modal.classList.add('active');
     }
 
-    // ========== عرض مهام الطالب مع الساعات ==========
-    async function showStudentTasks(studentId) {
-        const existingModal = document.getElementById('studentTasksModal');
-        if (existingModal) existingModal.classList.remove('active');
-        const student = allStudents.find(s => s.id === studentId);
-        if (!student) { console.warn("الطالب غير موجود:", studentId); return; }
-        const completedEntries = getStudentCompletedBySubject(student, currentSubject);
-        const completedTasksList = [];
-        for (const entry of completedEntries) {
-            const task = allSubTasks.find(t => t.id === entry.taskId);
-            if (!task) continue;
-            const day = currentSchedule[task.dayIndex];
-            const dateStr = currentSubject === 'physics' ? (day ? day.date : '?') : (day ? `اليوم ${day.dayNumber}` : '?');
-            completedTasksList.push({ 
-                text: task.text, 
-                completedAt: entry.completedAt, 
-                date: dateStr, 
-                duration: task.duration 
-            });
+// ========== عرض مهام الطالب المكتملة ==========
+async function showStudentTasks(studentId) {
+    // إزالة أي مودال موجود مسبقاً
+    const existingModal = document.getElementById('studentTasksModal');
+    if (existingModal) existingModal.classList.remove('active');
+    
+    // البحث عن الطالب
+    const student = allStudents.find(s => s.id === studentId);
+    if (!student) {
+        console.warn("الطالب غير موجود:", studentId);
+        return;
+    }
+    
+    // جلب المهام المكتملة للطالب في المادة الحالية
+    const completedEntries = getStudentCompletedBySubject(student, currentSubject);
+    const completedTasksList = [];
+    
+    // معالجة كل مهمة مكتملة
+    for (const entry of completedEntries) {
+        let task = null;
+        
+        // 1️⃣ المحاولة الأولى: البحث باستخدام taskId
+        task = allSubTasks.find(t => t.id === entry.taskId);
+        
+        // 2️⃣ المحاولة الثانية: البحث باستخدام المعلومات الإضافية (dayIndex, period, text)
+        if (!task && entry.dayIndex !== undefined && entry.period && entry.text) {
+            task = allSubTasks.find(t => 
+                t.dayIndex === entry.dayIndex && 
+                t.period === entry.period && 
+                t.text === entry.text
+            );
         }
-        // حساب المهام (يظهر دائماً)
-const taskPercent = allSubTasks.length === 0 ? 0 : ((completedTasksList.length / allSubTasks.length) * 100).toFixed(1);
-
-// حساب الوحدات (ساعات أو دروس)
-let totalUnits = 0;
-let completedUnits = 0;
-let unitLabel = '';
-
-if (currentSubject === 'physics') {
-    // الفيزياء: نفس النظام القديم (مهام فقط)
-    totalUnits = 0;
-    completedUnits = 0;
-    unitLabel = '';
-} else if (currentSubject === 'science') {
-    // العلوم: ساعات
-    totalUnits = getTotalHoursOfPlan();
-    completedUnits = getCompletedHoursForStudent(student);
-    unitLabel = 'ساعات';
-} else if (currentSubject === 'islamic') {
-    // الديانة: دروس (نفس نظام العلوم تماماً)
-    totalUnits = getTotalHoursOfPlan();
-    completedUnits = getCompletedHoursForStudent(student);
-    unitLabel = 'دروس';
-}
-        const titleEl = document.getElementById('studentTasksTitle');
-        if (titleEl) {
-            titleEl.innerHTML = `
-                <div style="text-align:center;">
-                    <div style="font-size:1.2rem; margin-bottom:8px;">
-                        <i class="fas fa-user-graduate"></i> ${escapeHtml(student.fullName)}
-                    </div>
-                    <div style="display:flex; justify-content:center; gap:20px; flex-wrap:wrap; font-size:0.9rem;">
-                        <span style="background:#e8f5e9; padding:4px 12px; border-radius:20px;">
-                            <i class="fas fa-tasks"></i> المهام: ${completedTasksList.length}/${allSubTasks.length} (${taskPercent}%)
-                        </span>
-                        ${(currentSubject === 'science' || currentSubject === 'islamic') ? `
-<span style="background:#e3f2fd; padding:4px 12px; border-radius:20px;">
-    <i class="fas fa-clock"></i> ${unitLabel}: ${completedUnits.toFixed(1)}/${totalUnits.toFixed(1)} (${percent}%)
-</span>
-` : ''}
-                    </div>
-                </div>
-            `;
+        
+        // 3️⃣ المحاولة الثالثة: البحث باستخدام النص فقط (كحل أخير)
+        if (!task && entry.text) {
+            task = allSubTasks.find(t => t.text === entry.text);
         }
-        const container = document.getElementById('studentTasksList');
-        if (container) {
-            if (completedTasksList.length === 0) {
-                container.innerHTML = '<div class="student-task-card">📭 لا توجد مهام منجزة بعد</div>';
+        
+        // إذا لم يتم العثور على المهمة، تخطيها
+        if (!task) continue;
+        
+        // استخراج تاريخ المهمة
+        const day = currentSchedule[task.dayIndex];
+        let dateStr = '?';
+        if (day) {
+            if (currentSubject === 'physics') {
+                dateStr = day.date || '?';
             } else {
-                container.innerHTML = completedTasksList.map(task => {
-                    const timeDateStr = formatTimeAndDate(task.completedAt);
-                    let durationHtml = ((currentSubject==='science'||currentSubject==='islamic') && task.duration) ? `<span class="duration-badge" style="background:#2196f3;"><i class="fas fa-clock"></i> ${task.duration} ساعة</span>` : '';
-                    return `<div class="student-task-card"><i class="fas fa-check-circle student-task-icon"></i><div style="flex:1;"><div style="font-weight:bold;">${escapeHtml(cleanTaskText(task.text))}</div><div style="font-size:0.75rem; color:#4a6741;">🕒 ${timeDateStr}</div></div>${durationHtml}</div>`;
-                }).join('');
+                dateStr = `اليوم ${day.dayNumber}`;
             }
         }
-        const modal = document.getElementById('studentTasksModal');
-        if (modal) {
-            modal.style.visibility = 'visible';
-            modal.style.opacity = '1';
-            modal.classList.add('active');
-            modal.style.zIndex = '3001';
-        }
-        playSound('select');
+        
+        // إضافة المهمة إلى القائمة
+        completedTasksList.push({ 
+            text: task.text, 
+            completedAt: entry.completedAt, 
+            date: dateStr, 
+            duration: task.duration,
+            unit: task.unit || ''
+        });
     }
+    
+    // حساب النسبة المئوية للمهام المكتملة
+    const taskPercent = allSubTasks.length === 0 ? 0 : ((completedTasksList.length / allSubTasks.length) * 100).toFixed(1);
+    
+    // حساب الوحدات المكتملة (ساعات/دقائق) للعلوم والإسلامية
+    let totalUnits = 0;
+    let completedUnits = 0;
+    let unitLabel = '';
+    let unitsPercent = 0;
+    
+    if (currentSubject === 'science') {
+        totalUnits = getTotalHoursOfPlan();
+        completedUnits = getCompletedHoursForStudent(student);
+        unitLabel = 'ساعة';
+        unitsPercent = totalUnits === 0 ? 0 : ((completedUnits / totalUnits) * 100).toFixed(1);
+    } else if (currentSubject === 'islamic') {
+        totalUnits = getTotalHoursOfPlan();
+        completedUnits = getCompletedHoursForStudent(student);
+        unitLabel = 'ساعة';
+        unitsPercent = totalUnits === 0 ? 0 : ((completedUnits / totalUnits) * 100).toFixed(1);
+    }
+    
+    // تحديث عنوان المودال
+    const titleEl = document.getElementById('studentTasksTitle');
+    if (titleEl) {
+        let statsHTML = `
+            <div style="text-align:center;">
+                <div style="font-size:1.3rem; margin-bottom:10px; color:#1f5437;">
+                    <i class="fas fa-user-graduate"></i> ${escapeHtml(student.fullName)}
+                </div>
+                <div style="display:flex; justify-content:center; gap:15px; flex-wrap:wrap; font-size:0.9rem;">
+                    <span style="background:#e8f5e9; padding:6px 16px; border-radius:20px; display:inline-flex; align-items:center; gap:6px;">
+                        <i class="fas fa-tasks" style="color:#2c6e3c;"></i>
+                        المهام: ${completedTasksList.length}/${allSubTasks.length} (${taskPercent}%)
+                    </span>
+        `;
+        
+        // إضافة معلومات الوحدات للعلوم والإسلامية
+        if (currentSubject === 'science' || currentSubject === 'islamic') {
+            statsHTML += `
+                <span style="background:#e3f2fd; padding:6px 16px; border-radius:20px; display:inline-flex; align-items:center; gap:6px;">
+                    <i class="fas fa-clock" style="color:#1565c0;"></i>
+                    ${unitLabel}: ${completedUnits.toFixed(1)}/${totalUnits.toFixed(1)} (${unitsPercent}%)
+                </span>
+            `;
+        }
+        
+        statsHTML += `
+                </div>
+            </div>
+        `;
+        
+        titleEl.innerHTML = statsHTML;
+    }
+    
+    // عرض قائمة المهام المكتملة
+    const container = document.getElementById('studentTasksList');
+    if (container) {
+        if (completedTasksList.length === 0) {
+            container.innerHTML = `
+                <div class="student-task-card" style="justify-content:center; color:#888;">
+                    <i class="fas fa-info-circle" style="font-size:1.5rem; color:#f39c12;"></i>
+                    <span>لم يكمل الطالب أي مهام بعد في هذه المادة</span>
+                </div>
+            `;
+        } else {
+            // ترتيب المهام حسب تاريخ الإكمال (الأحدث أولاً)
+            completedTasksList.sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0));
+            
+            container.innerHTML = completedTasksList.map((task, index) => {
+                const timeDateStr = formatTimeAndDate(task.completedAt);
+                
+                // عرض مدة المهمة للعلوم والإسلامية
+                let durationHtml = '';
+                if ((currentSubject === 'science' || currentSubject === 'islamic') && task.duration > 0) {
+                    const badgeColor = currentSubject === 'islamic' ? '#F59E0B' : '#2196f3';
+                    const iconClass = currentSubject === 'islamic' ? 'fa-book-open' : 'fa-clock';
+                    
+                    let numberPart = '';
+                    let textPart = '';
+                    
+                    if (currentSubject === 'islamic') {
+                        if (task.duration === 1) {
+                            numberPart = '1';
+                            textPart = 'ساعة';
+                        } else if (task.duration === 2) {
+                            numberPart = '';
+                            textPart = 'ساعتين';
+                        } else {
+                            numberPart = task.duration;
+                            textPart = 'ساعات';
+                        }
+                    } else if (currentSubject === 'science') {
+                        if (task.duration === 1) {
+                            numberPart = '1';
+                            textPart = 'ساعة';
+                        } else if (task.duration === 2) {
+                            numberPart = '';
+                            textPart = 'ساعتين';
+                        } else {
+                            numberPart = task.duration;
+                            textPart = 'ساعات';
+                        }
+                    }
+                    
+                    durationHtml = `
+                        <span class="duration-badge" style="background:${badgeColor}; color:white; direction:ltr; display:inline-flex; align-items:center; gap:3px; padding:3px 10px; border-radius:40px; font-size:0.7rem; white-space:nowrap; font-weight:600;">
+                            <i class="fas ${iconClass}" style="flex-shrink:0;"></i>
+                            ${numberPart ? `<span style="display:inline-block; direction:ltr;">${numberPart}</span>` : ''}
+                            <span style="display:inline-block; direction:ltr;">${textPart}</span>
+                        </span>
+                    `;
+                }
+                
+                // رقم المهمة
+                const taskNumber = index + 1;
+                
+                return `
+                    <div class="student-task-card">
+                        <span style="background:#2c6e3c; color:white; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; font-size:0.8rem; font-weight:bold; flex-shrink:0;">
+                            ${taskNumber}
+                        </span>
+                        <div style="flex:1; min-width:0;">
+                            <div style="font-weight:bold; font-size:1rem; color:#1f3b2c;">${escapeHtml(cleanTaskText(task.text))}</div>
+                            <div style="font-size:0.75rem; color:#4a6741; margin-top:2px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                                <span><i class="far fa-calendar-alt" style="color:#888;"></i> ${task.date || '?'}</span>
+                                <span><i class="far fa-clock" style="color:#888;"></i> ${timeDateStr}</span>
+                            </div>
+                        </div>
+                        ${durationHtml}
+                    </div>
+                `;
+            }).join('');
+        }
+    }
+    
+    // إظهار المودال
+    const modal = document.getElementById('studentTasksModal');
+    if (modal) {
+        modal.style.visibility = 'visible';
+        modal.style.opacity = '1';
+        modal.classList.add('active');
+        modal.style.zIndex = '3001';
+    }
+    
+    // تشغيل صوت
+    playSound('select');
+}
 
     // ========== قائمة الطلاب ==========
     async function showAllStudentsDialog() {
