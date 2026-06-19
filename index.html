@@ -597,7 +597,7 @@ function getCompletedHoursForStudent(student) {
             } else if (currentSubject === 'islamic') {
                 let match = taskText.match(/\((\d+)\)/);
                 duration = match ? parseFloat(match[1]) : 0;
-                unit = 'درس';
+                unit = 'درس';  // ✅ دروس وليس ساعات
             } else if (currentSubject === 'physics') {
                 duration = 1;
                 unit = '';
@@ -605,7 +605,7 @@ function getCompletedHoursForStudent(student) {
             allSubTasks.push({ 
                 id: `task_${idCounter++}`, 
                 dayIndex: dayIdx, 
-                period: 'صباحية', 
+                period: 'الفترة الصباحية', 
                 text: taskText, 
                 duration: duration,
                 unit: unit
@@ -623,7 +623,7 @@ function getCompletedHoursForStudent(student) {
             } else if (currentSubject === 'islamic') {
                 let match = taskText.match(/\((\d+)\)/);
                 duration = match ? parseFloat(match[1]) : 0;
-                unit = 'درس';
+                unit = 'درس';  // ✅ دروس وليس ساعات
             } else if (currentSubject === 'physics') {
                 duration = 1;
                 unit = '';
@@ -631,7 +631,7 @@ function getCompletedHoursForStudent(student) {
             allSubTasks.push({ 
                 id: `task_${idCounter++}`, 
                 dayIndex: dayIdx, 
-                period: 'مسائية', 
+                period: 'الفترة المسائية', 
                 text: taskText, 
                 duration: duration,
                 unit: unit
@@ -769,10 +769,10 @@ function getCompletedHoursForStudent(student) {
     }
     
     if (todayTasks.length===0) {
-        todayContainer.innerHTML='<div class="subtask-item">✅ جميع المهام أنجزت أو لا توجد مهام لهذا اليوم</div>';
+        todayContainer.innerHTML='<div class="subtask-item">لا توجد مهام محددة لهذا اليوم</div>';
     } else {
-        const morning = todayTasks.filter(t=>t.period==='صباحية');
-        const evening = todayTasks.filter(t=>t.period==='مسائية');
+        const morning = todayTasks.filter(t=>t.period==='الفترة الصباحية');
+        const evening = todayTasks.filter(t=>t.period==='الفترة المسائية');
         const wrapper = document.createElement('div'); 
         wrapper.className='today-tasks-split';
         
@@ -789,22 +789,23 @@ function getCompletedHoursForStudent(student) {
                     let badgeColor = currentSubject === 'islamic' ? '#F59E0B' : '#2196f3';
                     let iconClass = currentSubject === 'islamic' ? 'fa-book-open' : 'fa-clock';
                     
-                    // ===== فصل الرقم عن النص =====
                     let numberPart = '';
                     let textPart = '';
                     
                     if (currentSubject === 'islamic') {
+                        // ✅ التربية الإسلامية: دروس
                         if (task.duration === 1) {
                             numberPart = '1';
                             textPart = 'درس';
                         } else if (task.duration === 2) {
                             numberPart = '';
-                            textPart = 'درسين';
+                            textPart = 'درسان';
                         } else {
                             numberPart = task.duration;
                             textPart = 'دروس';
                         }
                     } else if (currentSubject === 'science') {
+                        // ✅ العلوم: ساعات
                         if (task.duration === 1) {
                             numberPart = '1';
                             textPart = 'ساعة';
@@ -848,17 +849,19 @@ function getCompletedHoursForStudent(student) {
                     let textPart = '';
                     
                     if (currentSubject === 'islamic') {
+                        // ✅ التربية الإسلامية: دروس
                         if (task.duration === 1) {
                             numberPart = '1';
                             textPart = 'درس';
                         } else if (task.duration === 2) {
                             numberPart = '';
-                            textPart = 'درسين';
+                            textPart = 'درسان';
                         } else {
                             numberPart = task.duration;
                             textPart = 'دروس';
                         }
                     } else if (currentSubject === 'science') {
+                        // ✅ العلوم: ساعات
                         if (task.duration === 1) {
                             numberPart = '1';
                             textPart = 'ساعة';
@@ -891,19 +894,19 @@ function getCompletedHoursForStudent(student) {
     const daysContainer = document.getElementById('allDaysContainer');
     daysContainer.innerHTML = '';
     currentSchedule.forEach((day, idx) => {
-        const morningTasks = allSubTasks.filter(t=>t.dayIndex===idx && t.period==='صباحية');
-        const eveningTasks = allSubTasks.filter(t=>t.dayIndex===idx && t.period==='مسائية');
+        const morningTasks = allSubTasks.filter(t=>t.dayIndex===idx && t.period==='الفترة الصباحية');
+        const eveningTasks = allSubTasks.filter(t=>t.dayIndex===idx && t.period==='الفترة المسائية');
         const completed = morningTasks.filter(t=>completedMap.has(t.id)).length + eveningTasks.filter(t=>completedMap.has(t.id)).length;
         const total = morningTasks.length+eveningTasks.length;
         const percent = total===0?0:(completed/total)*100;
         let headerText = currentSubject==='physics' ? `${day.date} - ${day.weekday}` : `اليوم ${day.dayNumber} (${day.weekday})`;
         const dayCard = document.createElement('div'); 
         dayCard.className='day-card';
-        dayCard.innerHTML = `<div class="day-header"><div class="day-date">${headerText}</div></div><div style="padding:0.5rem 1.8rem; font-weight:bold;">📊 التقدم: <span dir="ltr">${completed}/${total}</span> <div class="progress-bg" style="width:110px; height:8px; display:inline-block; margin-right:8px;"><div style="width:${percent}%; height:100%; background:#2e7d32; border-radius:40px;"></div></div></div><div style="padding:0.5rem 1.5rem 1.2rem 1.5rem;" id="dayContent-${idx}"></div>`;
+        dayCard.innerHTML = `<div class="day-header"><div class="day-date">${headerText}</div></div><div style="padding:0.5rem 1.8rem; font-weight:bold;">عدد المهام: <span dir="ltr">${completed}/${total}</span> <div class="progress-bg" style="width:110px; height:8px; display:inline-block; margin-right:8px;"><div style="width:${percent}%; height:100%; background:#2e7d32; border-radius:40px;"></div></div></div><div style="padding:0.5rem 1.5rem 1.2rem 1.5rem;" id="dayContent-${idx}"></div>`;
         daysContainer.appendChild(dayCard);
         const periodDiv = dayCard.querySelector(`#dayContent-${idx}`);
         
-        // الصباحية
+        // الفترة الصباحية
         if (morningTasks.length) {
             const mornBlock = document.createElement('div');
             mornBlock.innerHTML = `<div class="period-title"><i class="fas fa-sun"></i> الفترة الصباحية</div><div id="mornList-${idx}"></div>`;
@@ -921,17 +924,19 @@ function getCompletedHoursForStudent(student) {
                     let textPart = '';
                     
                     if (currentSubject === 'islamic') {
+                        // ✅ التربية الإسلامية: دروس
                         if (task.duration === 1) {
                             numberPart = '1';
                             textPart = 'درس';
                         } else if (task.duration === 2) {
                             numberPart = '';
-                            textPart = 'درسين';
+                            textPart = 'درسان';
                         } else {
                             numberPart = task.duration;
                             textPart = 'دروس';
                         }
                     } else if (currentSubject === 'science') {
+                        // ✅ العلوم: ساعات
                         if (task.duration === 1) {
                             numberPart = '1';
                             textPart = 'ساعة';
@@ -957,7 +962,7 @@ function getCompletedHoursForStudent(student) {
             });
         }
         
-        // المسائية
+        // الفترة المسائية
         if (eveningTasks.length) {
             const evenBlock = document.createElement('div');
             evenBlock.innerHTML = `<div class="period-title"><i class="fas fa-moon"></i> الفترة المسائية</div><div id="evenList-${idx}"></div>`;
@@ -975,17 +980,19 @@ function getCompletedHoursForStudent(student) {
                     let textPart = '';
                     
                     if (currentSubject === 'islamic') {
+                        // ✅ التربية الإسلامية: دروس
                         if (task.duration === 1) {
                             numberPart = '1';
                             textPart = 'درس';
                         } else if (task.duration === 2) {
                             numberPart = '';
-                            textPart = 'درسين';
+                            textPart = 'درسان';
                         } else {
                             numberPart = task.duration;
                             textPart = 'دروس';
                         }
                     } else if (currentSubject === 'science') {
+                        // ✅ العلوم: ساعات
                         if (task.duration === 1) {
                             numberPart = '1';
                             textPart = 'ساعة';
@@ -1016,7 +1023,7 @@ function getCompletedHoursForStudent(student) {
     refreshSounds();
 
     if (totalTasks > 0 && completedCount === totalTasks && !celebrationTriggered) {
-        const subjectName = { physics: 'الفيزياء', science: 'العلوم', islamic: 'الاسلامية' }[currentSubject];
+        const subjectName = { physics: 'الفيزياء', science: 'العلوم', islamic: 'التربية الإسلامية' }[currentSubject];
         triggerCelebration(subjectName);
     }
 }
@@ -1469,7 +1476,7 @@ async function showStudentTasks(studentId) {
     // حساب النسبة المئوية للمهام المكتملة
     const taskPercent = allSubTasks.length === 0 ? 0 : ((completedTasksList.length / allSubTasks.length) * 100).toFixed(1);
     
-    // حساب الوحدات المكتملة (ساعات/دقائق) للعلوم والإسلامية
+    // حساب الوحدات المكتملة (ساعات/دروس)
     let totalUnits = 0;
     let completedUnits = 0;
     let unitLabel = '';
@@ -1483,7 +1490,7 @@ async function showStudentTasks(studentId) {
     } else if (currentSubject === 'islamic') {
         totalUnits = getTotalHoursOfPlan();
         completedUnits = getCompletedHoursForStudent(student);
-        unitLabel = 'ساعة';
+        unitLabel = 'درس';  // ✅ التربية الإسلامية: دروس وليس ساعات
         unitsPercent = totalUnits === 0 ? 0 : ((completedUnits / totalUnits) * 100).toFixed(1);
     }
     
@@ -1547,17 +1554,19 @@ async function showStudentTasks(studentId) {
                     let textPart = '';
                     
                     if (currentSubject === 'islamic') {
+                        // ✅ التربية الإسلامية: دروس
                         if (task.duration === 1) {
                             numberPart = '1';
-                            textPart = 'ساعة';
+                            textPart = 'درس';
                         } else if (task.duration === 2) {
                             numberPart = '';
-                            textPart = 'ساعتين';
+                            textPart = 'درسان';
                         } else {
                             numberPart = task.duration;
-                            textPart = 'ساعات';
+                            textPart = 'دروس';
                         }
                     } else if (currentSubject === 'science') {
+                        // ✅ العلوم: ساعات
                         if (task.duration === 1) {
                             numberPart = '1';
                             textPart = 'ساعة';
