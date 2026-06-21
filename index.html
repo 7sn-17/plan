@@ -437,6 +437,56 @@ body.no-scroll {
     border-color: #a0c8a0;
     background: #fafff9;
 }
+/* ===== زر الملاحظات ===== */
+.notes-toggle-btn {
+    background: transparent;
+    border: 1px solid #d0e8cf;
+    padding: 6px 18px;
+    border-radius: 30px;
+    font-size: 0.8rem;
+    color: #2c6e3c;
+    cursor: pointer;
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    transition: all 0.25s ease;
+}
+
+.notes-toggle-btn:hover {
+    background: #f0f7f0;
+    border-color: #2c6e3c;
+}
+
+.notes-toggle-btn i.fa-chevron-down {
+    transition: transform 0.3s;
+    font-size: 0.7rem;
+}
+
+.notes-content {
+    display: none;
+    margin-top: 10px;
+    padding: 14px 20px;
+    background: #f8faf5;
+    border-radius: 14px;
+    border-right: 4px solid #2c6e3c;
+    font-size: 0.9rem;
+    color: #1f3b2c;
+    line-height: 2;
+}
+
+.notes-content .note-line {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 2px 0;
+}
+
+.notes-content .note-line .bullet {
+    color: #2c6e3c;
+    font-size: 0.7rem;
+}
   </style>
 </head>
 <body>
@@ -455,6 +505,16 @@ body.no-scroll {
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+
+// ========== دالة ربط أحداث المهام ==========
+function attachTaskCheckEvents() {
+    document.querySelectorAll('.subtask-check').forEach(cb => {
+        // إزالة المستمع القديم لتجنب التكرار
+        cb.removeEventListener('change', handleTaskToggle);
+        cb.addEventListener('change', handleTaskToggle);
+    });
+}
+
 
     let isTeacherMode = false;
     let scheduleDataPhysics = [
@@ -504,6 +564,67 @@ body.no-scroll {
     },
 ];
 
+let scheduleDataArabic = [
+        {
+            dayNumber: 1,
+            weekday: "الأحد",
+            date: "21/6",
+            morning: `دراسة النصوص وتمكينها
+الأسئلة خلف النصوص (مهمة جداً)
+المفردات والجمع والمرادفات`,
+            evening: `دراسة البنية الفكرية
+حل الأمثلة والتدريبات`,
+            notes: `ركّز على الفهم أولاً ثم الحفظ
+الأسئلة خلف النصوص جزء أساسي من الامتحان`
+        },
+        {
+            dayNumber: 2,
+            weekday: "الإثنين",
+            date: "22/6",
+            morning: `القواعد النحوية
+قواعد نحوية
+الصرف (البلاغة - الإبدال - الإعلال)
+الإملاء والمعاجم
+الأساليب
+إعراب الجمل (لها محل / لا محل لها)
+التركيز بشكل كبير على القواعد`,
+            evening: `التجربة الشعورية
+دراسة وتحليل
+حل أمثلة وتدريبات`,
+            notes: `القواعد هي العمود الفقري للمادة
+احرص على حل أكبر عدد من التمارين`
+        },
+        {
+            dayNumber: 3,
+            weekday: "الثلاثاء",
+            date: "23/6",
+            morning: `مراجعة الشواهد والقصائد
+شرح القصائد وفهم الأبيات
+حفظ البنية الفنية
+الطريقة المثلى: فهم البيت ثم قراءته غيباً`,
+            evening: `دروس القراءة الأربعة
+التربية الاجتماعية
+سكان كوكب الزهرة
+المقالة والصحافة
+المفاتيح العشرة
+احرص على إتقان الدروس كاملة`,
+            notes: `الفهم أولاً ثم الحفظ
+دروس القراءة مهمة للعلامة الكاملة`
+        },
+        {
+            dayNumber: 4,
+            weekday: "الأربعاء",
+            date: "24/6",
+            morning: `مراجعة شاملة
+مراجعة النصوص
+مراجعة دروس القراءة`,
+            evening: `الموضوع الإجباري
+استغلال الوقت للتدريب على الموضوع
+مراجعة خفيفة للمادة`,
+            notes: `اجعل هذا اليوم للتركيز على الموضوع الإجباري
+مع مراجعة سريعة للمادة`
+        }
+    ];
     function safeLocalStorageSet(key, value) { try { localStorage.setItem(key, value); return true; } catch(e) { return false; } }
     function safeLocalStorageGet(key) { try { return localStorage.getItem(key); } catch(e) { return null; } }
     async function safeFirebaseGet(docRef, timeoutMs = 5000) {
@@ -537,6 +658,38 @@ body.no-scroll {
     cleaned = cleaned.replace(/\s*\([\d]+\)\s*$/, '').trim();
     return cleaned;
 }
+
+function renderNotesToggle(notes, dayIndex) {
+    if (!notes) return '';
+    return `
+        <button class="notes-toggle-btn" onclick="toggleNotes(${dayIndex})" style="background:transparent; border:1px solid #d0e8cf; padding:6px 18px; border-radius:30px; font-size:0.8rem; color:#2c6e3c; cursor:pointer; font-family:inherit; display:inline-flex; align-items:center; gap:8px; margin-top:8px; transition:all 0.25s;">
+            <i class="fas fa-pencil-alt" style="font-size:0.7rem;"></i>
+            ملاحظات اليوم
+            <i class="fas fa-chevron-down" id="notesArrow${dayIndex}" style="font-size:0.7rem; transition:transform 0.3s;"></i>
+        </button>
+        <div class="notes-content" id="notesContent${dayIndex}" style="display:none; margin-top:10px; padding:14px 20px; background:#f8faf5; border-radius:14px; border-right:4px solid #2c6e3c; font-size:0.9rem; color:#1f3b2c; line-height:2;">
+            ${notes.split('\n').map(line => `
+                <div style="display:flex; align-items:flex-start; gap:10px; padding:2px 0;">
+                    <span style="color:#2c6e3c; font-size:0.7rem;">✦</span>
+                    <span>${line}</span>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+// اجعل الدالة عامة
+window.toggleNotes = function(id) {
+    const content = document.getElementById(`notesContent-${id}`);
+    const arrow = document.getElementById(`notesArrow-${id}`);
+    if (content) {
+        const isVisible = content.style.display === 'block';
+        content.style.display = isVisible ? 'none' : 'block';
+        if (arrow) {
+            arrow.style.transform = isVisible ? 'rotate(0deg)' : 'rotate(180deg)';
+        }
+    }
+};
     function splitSub(text) {
         if (!text) return [];
         const lines = text.split(/\n/);
@@ -641,20 +794,24 @@ function getCompletedHoursForStudent(student) {
 }
 
     async function loadScheduleFromFirebase(subject) {
-        const docRef = db.collection('config').doc(`schedule_${subject}`);
-        let doc;
-        try { doc = await safeFirebaseGet(docRef); } catch(e) { throw new Error(`فشل تحميل جدول ${subject}`); }
-        if (doc.exists) {
-            if (subject === 'physics') scheduleDataPhysics = doc.data().days;
-            else if (subject === 'science') scheduleDataScience = doc.data().days;
-            else scheduleDataIslamic = doc.data().days;
-        } else {
-            if (subject === 'physics') await docRef.set({ days: scheduleDataPhysics });
-            else if (subject === 'science') await docRef.set({ days: scheduleDataScience });
-            else await docRef.set({ days: scheduleDataIslamic });
-        }
+    const docRef = db.collection('config').doc(`schedule_${subject}`);
+    let doc;
+    try { doc = await safeFirebaseGet(docRef); } catch(e) { throw new Error(`فشل تحميل جدول ${subject}`); }
+    if (doc.exists) {
+        if (subject === 'physics') scheduleDataPhysics = doc.data().days;
+        else if (subject === 'science') scheduleDataScience = doc.data().days;
+        else if (subject === 'islamic') scheduleDataIslamic = doc.data().days;
+        else if (subject === 'arabic') scheduleDataArabic = doc.data().days;
+    } else {
+        if (subject === 'physics') await docRef.set({ days: scheduleDataPhysics });
+        else if (subject === 'science') await docRef.set({ days: scheduleDataScience });
+        else if (subject === 'islamic') await docRef.set({ days: scheduleDataIslamic });
+        else if (subject === 'arabic') await docRef.set({ days: scheduleDataArabic });
     }
-    async function saveScheduleToFirebase(subject, data) { await db.collection('config').doc(`schedule_${subject}`).set({ days: data }); }
+}
+    async function saveScheduleToFirebase(subject, data) {
+    await db.collection('config').doc(`schedule_${subject}`).set({ days: data });
+}
     function formatTimeAndDate(timestampMs) {
         if (!timestampMs) return '—';
         const date = new Date(timestampMs);
@@ -665,16 +822,18 @@ function getCompletedHoursForStudent(student) {
         return `${hours}:${minutes} ${ampm} - ${date.getDate()}/${date.getMonth()+1}`;
     }
     async function removeTaskFromAllStudents(taskId, subject) {
-        const studentsSnap = await db.collection('students').get();
-        const batch = db.batch();
-        const field = subject === 'physics' ? 'completedTasksPhysics' : (subject === 'science' ? 'completedTasksScience' : 'completedTasksIslamic');
-        studentsSnap.docs.forEach(doc => {
-            const completed = doc.data()[field] || [];
-            const newCompleted = completed.filter(entry => entry.taskId !== taskId);
-            if (newCompleted.length !== completed.length) batch.update(doc.ref, { [field]: newCompleted });
-        });
-        await batch.commit();
-    }
+    const studentsSnap = await db.collection('students').get();
+    const batch = db.batch();
+    const field = subject === 'physics' ? 'completedTasksPhysics' : 
+                  (subject === 'science' ? 'completedTasksScience' : 
+                  (subject === 'islamic' ? 'completedTasksIslamic' : 'completedTasksArabic'));
+    studentsSnap.docs.forEach(doc => {
+        const completed = doc.data()[field] || [];
+        const newCompleted = completed.filter(entry => entry.taskId !== taskId);
+        if (newCompleted.length !== completed.length) batch.update(doc.ref, { [field]: newCompleted });
+    });
+    await batch.commit();
+}
     async function registerStudent(fullName, gender) {
         const newId = db.collection('students').doc().id;
         const studentData = { fullName, gender, completedTasksPhysics: [], completedTasksScience: [], completedTasksIslamic: [], createdAt: firebase.firestore.FieldValue.serverTimestamp(), lastUpdated: firebase.firestore.FieldValue.serverTimestamp() };
@@ -683,56 +842,89 @@ function getCompletedHoursForStudent(student) {
         safeLocalStorageSet('studentId', newId);
         return currentStudent;
     }
-    async function loadStudentData(studentId) {
-        const doc = await db.collection('students').doc(studentId).get();
-        if (doc.exists) {
-            currentStudent = { id: studentId, ...doc.data() };
-            if (!currentStudent.completedTasksPhysics) currentStudent.completedTasksPhysics = [];
-            if (!currentStudent.completedTasksScience) currentStudent.completedTasksScience = [];
-            if (!currentStudent.completedTasksIslamic) currentStudent.completedTasksIslamic = [];
-        } else currentStudent = null;
-    }
+async function loadStudentData(studentId) {
+    const doc = await db.collection('students').doc(studentId).get();
+    if (doc.exists) {
+        currentStudent = { id: studentId, ...doc.data() };
+        if (!currentStudent.completedTasksPhysics) currentStudent.completedTasksPhysics = [];
+        if (!currentStudent.completedTasksScience) currentStudent.completedTasksScience = [];
+        if (!currentStudent.completedTasksIslamic) currentStudent.completedTasksIslamic = [];
+        if (!currentStudent.completedTasksArabic) currentStudent.completedTasksArabic = [];
+    } else currentStudent = null;
+}
     async function saveStudentProgress(studentId, completedArray, subject) {
-        const updateField = subject === 'physics' ? 'completedTasksPhysics' : (subject === 'science' ? 'completedTasksScience' : 'completedTasksIslamic');
-        await db.collection('students').doc(studentId).update({ [updateField]: completedArray, lastUpdated: firebase.firestore.FieldValue.serverTimestamp() });
-    }
+    const updateField = subject === 'physics' ? 'completedTasksPhysics' : 
+                        (subject === 'science' ? 'completedTasksScience' : 
+                        (subject === 'islamic' ? 'completedTasksIslamic' : 'completedTasksArabic'));
+    await db.collection('students').doc(studentId).update({ 
+        [updateField]: completedArray, 
+        lastUpdated: firebase.firestore.FieldValue.serverTimestamp() 
+    });
+}
     async function loadAllStudents() {
-        const snapshot = await db.collection('students').get();
-        allStudents = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        for (let s of allStudents) {
-            if (!s.completedTasksPhysics) s.completedTasksPhysics = [];
-            if (!s.completedTasksScience) s.completedTasksScience = [];
-            if (!s.completedTasksIslamic) s.completedTasksIslamic = [];
-        }
+    const snapshot = await db.collection('students').get();
+    allStudents = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    for (let s of allStudents) {
+        if (!s.completedTasksPhysics) s.completedTasksPhysics = [];
+        if (!s.completedTasksScience) s.completedTasksScience = [];
+        if (!s.completedTasksIslamic) s.completedTasksIslamic = [];
+        if (!s.completedTasksArabic) s.completedTasksArabic = [];
     }
+}
     function getStudentCompletedBySubject(student, subject) {
-        if (subject === 'physics') return student.completedTasksPhysics || [];
-        if (subject === 'science') return student.completedTasksScience || [];
-        return student.completedTasksIslamic || [];
-    }
+    if (subject === 'physics') return student.completedTasksPhysics || [];
+    if (subject === 'science') return student.completedTasksScience || [];
+    if (subject === 'islamic') return student.completedTasksIslamic || [];
+    if (subject === 'arabic') return student.completedTasksArabic || [];
+    return [];
+}
 
+function getTodayTasks() {
+    if (currentSubject === 'physics') {
+        const todayStr = `${new Date().getDate()}/${new Date().getMonth()+1}`;
+        return allSubTasks.filter(t => currentSchedule[t.dayIndex]?.date === todayStr);
+    } else {
+        // ابحث عن أول يوم غير مكتمل
+        let firstIncompleteDay = null;
+        const completedArray = getStudentCompletedBySubject(currentStudent, currentSubject);
+        const completedMap = new Map(completedArray.map(entry => [entry.taskId, true]));
+        
+        for (let idx = 0; idx < currentSchedule.length; idx++) {
+            const dayTasks = allSubTasks.filter(t => t.dayIndex === idx);
+            const allCompleted = dayTasks.every(t => completedMap.has(t.id));
+            if (!allCompleted) { firstIncompleteDay = idx; break; }
+        }
+        
+        if (firstIncompleteDay === null && currentSchedule.length > 0) {
+            firstIncompleteDay = currentSchedule.length - 1;
+        }
+        
+        return firstIncompleteDay !== null ? allSubTasks.filter(t => t.dayIndex === firstIncompleteDay) : [];
+    }
+}
     // ============================================================
     // عرض الطالب
     async function initializeStudentWithSubject(subject) {
-        celebrationTriggered = false;
-        currentSubject = subject;
-        if (subject === 'physics') { await loadScheduleFromFirebase('physics'); currentSchedule = scheduleDataPhysics; }
-        else if (subject === 'science') { await loadScheduleFromFirebase('science'); currentSchedule = scheduleDataScience; }
-        else { await loadScheduleFromFirebase('islamic'); currentSchedule = scheduleDataIslamic; }
-        rebuildSubtaskIds();
-        buildStudentUI();
-        renderStudentView();
-    }
+    celebrationTriggered = false;
+    currentSubject = subject;
+    if (subject === 'physics') { await loadScheduleFromFirebase('physics'); currentSchedule = scheduleDataPhysics; }
+    else if (subject === 'science') { await loadScheduleFromFirebase('science'); currentSchedule = scheduleDataScience; }
+    else if (subject === 'islamic') { await loadScheduleFromFirebase('islamic'); currentSchedule = scheduleDataIslamic; }
+    else if (subject === 'arabic') { await loadScheduleFromFirebase('arabic'); currentSchedule = scheduleDataArabic; }
+    rebuildSubtaskIds();
+    buildStudentUI();
+    renderStudentView();
+}
     function buildStudentUI() {
-        const subjectNames = { physics: 'الفيزياء', science: 'العلوم', islamic: 'الاسلامية' };
-        const icons = { physics: 'fa-flask', science: 'fa-dna', islamic: 'fa-mosque' };
+    const subjectNames = { physics: 'الفيزياء', science: 'العلوم', islamic: 'التربية الإسلامية', arabic: 'اللغة العربية' };
+    const icons = { physics: 'fa-flask', science: 'fa-dna', islamic: 'fa-mosque', arabic: 'fa-book' };
         document.getElementById('appContainer').innerHTML = `
             <div class="hero-area"><div class="logo-title"><h1><i class="fas ${icons[currentSubject]}"></i>  خطة ${subjectNames[currentSubject]}</h1></div>
             <button id="switchSubjectBtn" class="btn-icon"><i class="fas fa-exchange-alt"></i> تبديل المادة</button></div>
             <div class="stats-panel"><div><i class="fas fa-chart-line"></i> التقدم الكلي: <strong id="globalDone">0</strong> / <strong id="globalTotal">0</strong></div><div class="progress-bg"><div class="progress-fill-global" id="globalProgressFill"></div></div></div>
             <div class="today-highlight" id="todaySpotlight"><div style="font-weight:800; margin-bottom:8px;"><i class="fas fa-calendar-day"></i> 🟢 مهام اليوم المباشرة</div><div id="todayTasksList"></div></div>
             <div id="allDaysContainer"></div>
-            <div class="motivational-board">${currentSubject === 'physics' ? '<i class="fas fa-star-of-life"></i> السبت 6/6 : التقديم الممتاز للامتحان إن شاء الله <i class="fas fa-star-of-life"></i><br><span>✨ ثقة، مراجعة ذهنية، ودعوات ✨</span>' : (currentSubject === 'science' ? '<i class="fas fa-leaf"></i> خطة العلوم المكثفة مع المدد المحددة والاستراحات المنظمة <i class="fas fa-leaf"></i><br><span>✨ التزم بالبرنامج وستصل إلى القمة بإذن الله ✨</span>' : '<i class="fas fa-quran"></i> 📖 خطة مراجعة الاسلامية <i class="fas fa-quran"></i><br><span>✨ بالتوفيق والنجاح بإذن الله ✨</span>')}</div>
+            <div class="motivational-board">${currentSubject === 'physics' ? '<i class="fas fa-star-of-life"></i> السبت 6/6 : التقديم الممتاز للامتحان إن شاء الله <i class="fas fa-star-of-life"></i><br><span>ثقة، مراجعة ذهنية، ودعوات</span>' : (currentSubject === 'science' ? '<i class="fas fa-leaf"></i> خطة العلوم المكثفة مع المدد المحددة والاستراحات المنظمة <i class="fas fa-leaf"></i><br><span>التزم بالبرنامج وستصل إلى القمة بإذن الله</span>' : (currentSubject === 'islamic' ? '<i class="fas fa-quran"></i>  خطة مراجعة الاسلامية <i class="fas fa-quran"></i><br><span>بالتوفيق والنجاح بإذن الله</span>' : '<i class="fas fa-book-open"></i>  خطة مراجعة اللغة العربية الشاملة <i class="fas fa-book-open"></i><br><span>إتقان النصوص، القواعد، القراءة، والمقالة بإذن الله</span>'))}</div>
             <div class="footer-quote">أنت أقوى مما تتصور، وأكثر مما تتخيل 🍂</div>
             <div class="developer-credit" onclick="window.open('https://wa.me/17862927607', '_blank');"><i class="fab fa-whatsapp"></i> المطور: حسن المحمد</div>
         `;
@@ -751,6 +943,7 @@ function getCompletedHoursForStudent(student) {
     document.getElementById('globalTotal').innerText = totalTasks;
     document.getElementById('globalProgressFill').style.width = `${totalTasks === 0 ? 0 : (completedCount / totalTasks) * 100}%`;
     
+    // ===== مهام اليوم =====
     const todayContainer = document.getElementById('todayTasksList');
     todayContainer.innerHTML = '';
     let todayTasks = [];
@@ -767,14 +960,39 @@ function getCompletedHoursForStudent(student) {
         if (firstIncompleteDay === null && currentSchedule.length>0) firstIncompleteDay = currentSchedule.length-1;
         if (firstIncompleteDay !== null) todayTasks = allSubTasks.filter(t => t.dayIndex === firstIncompleteDay);
     }
-    
+
     if (todayTasks.length===0) {
-        todayContainer.innerHTML='<div class="subtask-item">لا توجد مهام محددة لهذا اليوم</div>';
+        todayContainer.innerHTML='<div class="subtask-item">🎉 مبروك! لقد أنهيت جميع مهام هذا الأسبوع 🎉</div>';
     } else {
         const morning = todayTasks.filter(t=>t.period==='الفترة الصباحية');
         const evening = todayTasks.filter(t=>t.period==='الفترة المسائية');
         const wrapper = document.createElement('div'); 
         wrapper.className='today-tasks-split';
+        
+        // ===== ملاحظات اليوم في مهام اليوم (معرف فريد today-) =====
+        const dayIndex = todayTasks[0].dayIndex;
+        const day = currentSchedule[dayIndex];
+        if (day && day.notes) {
+            const notesWrapper = document.createElement('div');
+            notesWrapper.style.marginBottom = '12px';
+            notesWrapper.innerHTML = `
+                <button class="notes-toggle-btn" onclick="toggleNotes('today-${dayIndex}')">
+                    <i class="fas fa-pencil-alt"></i>
+                    ملاحظات اليوم
+                    <i class="fas fa-chevron-down" id="notesArrow-today-${dayIndex}"></i>
+                </button>
+                <div class="notes-content" id="notesContent-today-${dayIndex}">
+                    ${day.notes.split('\n').map(line => `
+                        <div class="note-line">
+                            <span class="bullet">✦</span>
+                            <span>${line}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            wrapper.appendChild(notesWrapper);
+        }
+        // ===== نهاية الملاحظات =====
         
         // ===== الفترة الصباحية =====
         if (morning.length) {
@@ -793,7 +1011,6 @@ function getCompletedHoursForStudent(student) {
                     let textPart = '';
                     
                     if (currentSubject === 'islamic') {
-                        // ✅ التربية الإسلامية: دروس
                         if (task.duration === 1) {
                             numberPart = '1';
                             textPart = 'درس';
@@ -805,7 +1022,6 @@ function getCompletedHoursForStudent(student) {
                             textPart = 'دروس';
                         }
                     } else if (currentSubject === 'science') {
-                        // ✅ العلوم: ساعات
                         if (task.duration === 1) {
                             numberPart = '1';
                             textPart = 'ساعة';
@@ -849,7 +1065,6 @@ function getCompletedHoursForStudent(student) {
                     let textPart = '';
                     
                     if (currentSubject === 'islamic') {
-                        // ✅ التربية الإسلامية: دروس
                         if (task.duration === 1) {
                             numberPart = '1';
                             textPart = 'درس';
@@ -861,7 +1076,6 @@ function getCompletedHoursForStudent(student) {
                             textPart = 'دروس';
                         }
                     } else if (currentSubject === 'science') {
-                        // ✅ العلوم: ساعات
                         if (task.duration === 1) {
                             numberPart = '1';
                             textPart = 'ساعة';
@@ -889,7 +1103,7 @@ function getCompletedHoursForStudent(student) {
         }
         todayContainer.appendChild(wrapper);
     }
-    
+
     // ===== عرض جميع الأيام =====
     const daysContainer = document.getElementById('allDaysContainer');
     daysContainer.innerHTML = '';
@@ -906,7 +1120,7 @@ function getCompletedHoursForStudent(student) {
         daysContainer.appendChild(dayCard);
         const periodDiv = dayCard.querySelector(`#dayContent-${idx}`);
         
-        // الفترة الصباحية
+        // ===== الفترة الصباحية =====
         if (morningTasks.length) {
             const mornBlock = document.createElement('div');
             mornBlock.innerHTML = `<div class="period-title"><i class="fas fa-sun"></i> الفترة الصباحية</div><div id="mornList-${idx}"></div>`;
@@ -924,7 +1138,6 @@ function getCompletedHoursForStudent(student) {
                     let textPart = '';
                     
                     if (currentSubject === 'islamic') {
-                        // ✅ التربية الإسلامية: دروس
                         if (task.duration === 1) {
                             numberPart = '1';
                             textPart = 'درس';
@@ -936,7 +1149,6 @@ function getCompletedHoursForStudent(student) {
                             textPart = 'دروس';
                         }
                     } else if (currentSubject === 'science') {
-                        // ✅ العلوم: ساعات
                         if (task.duration === 1) {
                             numberPart = '1';
                             textPart = 'ساعة';
@@ -962,7 +1174,7 @@ function getCompletedHoursForStudent(student) {
             });
         }
         
-        // الفترة المسائية
+        // ===== الفترة المسائية =====
         if (eveningTasks.length) {
             const evenBlock = document.createElement('div');
             evenBlock.innerHTML = `<div class="period-title"><i class="fas fa-moon"></i> الفترة المسائية</div><div id="evenList-${idx}"></div>`;
@@ -980,7 +1192,6 @@ function getCompletedHoursForStudent(student) {
                     let textPart = '';
                     
                     if (currentSubject === 'islamic') {
-                        // ✅ التربية الإسلامية: دروس
                         if (task.duration === 1) {
                             numberPart = '1';
                             textPart = 'درس';
@@ -992,7 +1203,6 @@ function getCompletedHoursForStudent(student) {
                             textPart = 'دروس';
                         }
                     } else if (currentSubject === 'science') {
-                        // ✅ العلوم: ساعات
                         if (task.duration === 1) {
                             numberPart = '1';
                             textPart = 'ساعة';
@@ -1017,8 +1227,31 @@ function getCompletedHoursForStudent(student) {
                 evenList.appendChild(taskDiv);
             });
         }
+        
+        // ===== ملاحظات اليوم في بطاقة اليوم (معرف فريد day-) =====
+        if (day && day.notes) {
+            const notesWrapper = document.createElement('div');
+            notesWrapper.style.padding = '0.5rem 0 0.5rem 0';
+            notesWrapper.innerHTML = `
+                <button class="notes-toggle-btn" onclick="toggleNotes('day-${idx}')">
+                    <i class="fas fa-pencil-alt"></i>
+                    ملاحظات اليوم
+                    <i class="fas fa-chevron-down" id="notesArrow-day-${idx}"></i>
+                </button>
+                <div class="notes-content" id="notesContent-day-${idx}">
+                    ${day.notes.split('\n').map(line => `
+                        <div class="note-line">
+                            <span class="bullet">✦</span>
+                            <span>${line}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            periodDiv.appendChild(notesWrapper);
+        }
+        // ===== نهاية الملاحظات =====
     });
-    
+
     attachTaskCheckEvents();
     refreshSounds();
 
@@ -1028,45 +1261,57 @@ function getCompletedHoursForStudent(student) {
     }
 }
 
-function attachTaskCheckEvents() {
-    // ربط حدث التغيير بكل مربعات الاختيار
-    document.querySelectorAll('.subtask-check').forEach(cb => {
-        // إزالة المستمع القديم لتجنب التكرار
-        cb.removeEventListener('change', handleTaskToggle);
-        cb.addEventListener('change', handleTaskToggle);
-    });
-}
-
     async function handleTaskToggle(e) {
     const cb = e.target;
     const taskId = cb.getAttribute('data-id');
     if (!currentStudent) return;
     
+    // IMPORTANT: Get current state BEFORE any changes
     let completed = getStudentCompletedBySubject(currentStudent, currentSubject);
     const task = allSubTasks.find(t => t.id === taskId);
     
+    // Toggle logic with proper state management
     if (cb.checked) {
+        // TASK COMPLETED - Add to completed list
         playSound('complete');
-        // ✅ حفظ معلومات إضافية لتسهيل الاسترجاع
-        completed.push({ 
-            taskId, 
-            completedAt: Date.now(),
-            dayIndex: task?.dayIndex,
-            period: task?.period,
-            text: task?.text,
-            duration: task?.duration
-        });
+        // Check if already exists (prevent duplicates)
+        if (!completed.some(entry => entry.taskId === taskId)) {
+            completed.push({ 
+                taskId, 
+                completedAt: Date.now(),
+                dayIndex: task?.dayIndex,
+                period: task?.period,
+                text: task?.text,
+                duration: task?.duration
+            });
+        }
     } else {
+        // TASK UNCOMPLETED - Remove from completed list
         completed = completed.filter(entry => entry.taskId !== taskId);
     }
     
+    // IMPORTANT: Update Firebase FIRST
     await saveStudentProgress(currentStudent.id, completed, currentSubject);
-    const field = currentSubject === 'physics' ? 'completedTasksPhysics' : 
-                  (currentSubject === 'science' ? 'completedTasksScience' : 'completedTasksIslamic');
+    
+    // IMPORTANT: Update local student object BEFORE re-rendering
+    const field = getCompletedField(currentSubject);
     currentStudent[field] = completed;
+    
+    // Reset celebration flag to allow future celebrations
     celebrationTriggered = false;
+    
+    // NOW re-render with updated data
     renderStudentView();
     playBeep();
+}
+
+// Helper function to get the correct field name
+function getCompletedField(subject) {
+    if (subject === 'physics') return 'completedTasksPhysics';
+    if (subject === 'science') return 'completedTasksScience';
+    if (subject === 'islamic') return 'completedTasksIslamic';
+    if (subject === 'arabic') return 'completedTasksArabic';
+    return 'completedTasksPhysics';
 }
     async function switchSubject(subject) {
     if (subject === currentSubject) return;
@@ -1074,7 +1319,6 @@ function attachTaskCheckEvents() {
     playSound('select');
     celebrationTriggered = false;
     
-    // ✅ تنظيف البيانات القديمة
     allSubTasks = [];
     currentSchedule = [];
     currentSubject = subject;
@@ -1087,16 +1331,20 @@ function attachTaskCheckEvents() {
         await loadScheduleFromFirebase('science'); 
         currentSchedule = scheduleDataScience; 
     }
-    else { 
+    else if (subject === 'islamic') { 
         await loadScheduleFromFirebase('islamic'); 
         currentSchedule = scheduleDataIslamic; 
+    }
+    else if (subject === 'arabic') { 
+        await loadScheduleFromFirebase('arabic'); 
+        currentSchedule = scheduleDataArabic; 
     }
     
     rebuildSubtaskIds();
     buildStudentUI();
     renderStudentView();
     
-    const names = { physics: 'الفيزياء', science: 'العلوم', islamic: 'التربية الإسلامية' };
+    const names = { physics: 'الفيزياء', science: 'العلوم', islamic: 'التربية الإسلامية', arabic: 'اللغة العربية' };
     showToast(`تم التبديل إلى مادة ${names[subject]}`);
 }
     function showSubjectSwitchDialog() {
@@ -1109,7 +1357,7 @@ function attachTaskCheckEvents() {
                 <i class="fas fa-exchange-alt" style="font-size: 1.8rem; color: #2c6e3c;"></i>
                 <h3 style="margin: 0; color: #1f3b2c; font-weight: 800; font-family: 'Tajawal', 'Cairo', sans-serif;">تبديل المادة</h3>
             </div>
-            <p style="color: #777; margin-bottom: 25px; font-size: 0.9rem; font-family: 'Tajawal', 'Cairo', sans-serif;">اختر المادة التي تريد متابعتها</p>
+            <p style="color: #777; margin-bottom: 25px; font-size: 0.9rem; font-family: 'Tajawal', 'Cairo', sans-serif;">اختر المادة التي تريد دراستها</p>
             
             <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
                 <button id="switchToPhysics" style="background: #1b5e2a; color: white; border: none; padding: 14px 20px; border-radius: 50px; font-weight: 700; font-size: 1.1rem; font-family: 'Tajawal', 'Cairo', sans-serif; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; box-shadow: 0 4px 12px rgba(27,94,42,0.25); letter-spacing: 0.5px;">
@@ -1119,7 +1367,10 @@ function attachTaskCheckEvents() {
                     <i class="fas fa-dna" style="font-size: 1.2rem;"></i> العلوم
                 </button>
                 <button id="switchToIslamic" style="background: #1a3a6b; color: white; border: none; padding: 14px 20px; border-radius: 50px; font-weight: 700; font-size: 1.1rem; font-family: 'Tajawal', 'Cairo', sans-serif; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; box-shadow: 0 4px 12px rgba(26,58,107,0.25); letter-spacing: 0.5px;">
-                    <i class="fas fa-mosque" style="font-size: 1.2rem;"></i> الاسلامية
+                    <i class="fas fa-mosque" style="font-size: 1.2rem;"></i> التربية الإسلامية
+                </button>
+                <button id="switchToArabic" style="background: #8e6b1f; color: white; border: none; padding: 14px 20px; border-radius: 50px; font-weight: 700; font-size: 1.1rem; font-family: 'Tajawal', 'Cairo', sans-serif; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; box-shadow: 0 4px 12px rgba(142,107,31,0.25); letter-spacing: 0.5px;">
+                    <i class="fas fa-book-open" style="font-size: 1.2rem;"></i> اللغة العربية
                 </button>
             </div>
 
@@ -1130,7 +1381,7 @@ function attachTaskCheckEvents() {
     `;
     document.body.appendChild(modal);
 
-    // تأثيرات hover بأناقة
+    // أحداث الأزرار
     const btns = modal.querySelectorAll('button[id^="switchTo"]');
     btns.forEach(btn => {
         btn.addEventListener('mouseenter', () => { btn.style.transform = 'translateY(-2px) scale(1.02)'; });
@@ -1140,10 +1391,10 @@ function attachTaskCheckEvents() {
     cancelBtn.addEventListener('mouseenter', () => { cancelBtn.style.background = '#f5f5f5'; cancelBtn.style.borderColor = '#bbb'; });
     cancelBtn.addEventListener('mouseleave', () => { cancelBtn.style.background = 'transparent'; cancelBtn.style.borderColor = '#e0e0e0'; });
 
-    // أحداث النقر
     document.getElementById('switchToPhysics').onclick = () => { switchSubject('physics'); modal.remove(); };
     document.getElementById('switchToScience').onclick = () => { switchSubject('science'); modal.remove(); };
     document.getElementById('switchToIslamic').onclick = () => { switchSubject('islamic'); modal.remove(); };
+    document.getElementById('switchToArabic').onclick = () => { switchSubject('arabic'); modal.remove(); };
     document.getElementById('cancelSwitchBtn').onclick = () => modal.remove();
 }
 
@@ -1151,7 +1402,7 @@ function attachTaskCheckEvents() {
     async function renderTeacherView() {
     // التأكد من وجود حاوية الأزرار
     let tabsContainer = document.getElementById('subjectTabsContainer');
-    if (!tabsContainer) {
+     if (!tabsContainer) {
         tabsContainer = document.createElement('div');
         tabsContainer.id = 'subjectTabsContainer';
         tabsContainer.className = 'filter-buttons';
@@ -1160,7 +1411,6 @@ function attachTaskCheckEvents() {
         todaySpotlight.insertAdjacentElement('beforebegin', tabsContainer);
     }
 
-    // ===== الأزرار المحسّنة مع أيقونات =====
     tabsContainer.innerHTML = `
         <button id="tabPhysicsTeacher" class="filter-btn teacher-tab ${currentSubject === 'physics' ? 'active' : ''}" data-subject="physics">
             <i class="fas fa-atom"></i> الفيزياء
@@ -1169,7 +1419,10 @@ function attachTaskCheckEvents() {
             <i class="fas fa-dna"></i> العلوم
         </button>
         <button id="tabIslamicTeacher" class="filter-btn teacher-tab ${currentSubject === 'islamic' ? 'active' : ''}" data-subject="islamic">
-            <i class="fas fa-mosque"></i> الاسلامية
+            <i class="fas fa-mosque"></i> التربية الإسلامية
+        </button>
+        <button id="tabArabicTeacher" class="filter-btn teacher-tab ${currentSubject === 'arabic' ? 'active' : ''}" data-subject="arabic">
+            <i class="fas fa-book-open"></i> اللغة العربية
         </button>
     `;
 
@@ -1322,6 +1575,17 @@ function attachTaskCheckEvents() {
         document.querySelector('.motivational-board').innerHTML = '✨ متابعة تقدم الطلاب في الاسلامية بشكل لحظي ✨';
         renderTeacherView();
     };
+
+document.getElementById('tabArabicTeacher').onclick = async () => {
+    currentSubject = 'arabic';
+    await loadScheduleFromFirebase('arabic');
+    currentSchedule = scheduleDataArabic;
+    rebuildSubtaskIds();
+    await loadAllStudents();
+    document.querySelector('.hero-area .logo-title h1').innerHTML = '<i class="fas fa-chalkboard-user"></i> لوحة تحكم المشرف - اللغة العربية 2026';
+    document.querySelector('.motivational-board').innerHTML = '✨ متابعة تقدم الطلاب في اللغة العربية بشكل لحظي ✨';
+    renderTeacherView();
+};
 
     // إخفاء لوحة الإحصائيات (لأنها غير مطلوبة في وضع المعلم)
     const statsPanel = document.querySelector('.stats-panel');
@@ -1894,15 +2158,17 @@ if (currentSubject === 'islamic') {
     }
 
     const subjectIcon = {
-        physics: 'fa-atom',
-        science: 'fa-dna',
-        islamic: 'fa-mosque'
-    };
-    const subjectNameMap = {
-        physics: 'الفيزياء',
-        science: 'العلوم',
-        islamic: 'التربية الإسلامية'
-    };
+    physics: 'fa-atom',
+    science: 'fa-dna',
+    islamic: 'fa-mosque',
+    arabic: 'fa-book-open'
+};
+const subjectNameMap = {
+    physics: 'الفيزياء',
+    science: 'العلوم',
+    islamic: 'التربية الإسلامية',
+    arabic: 'اللغة العربية'
+};
     const icon = subjectIcon[currentSubject] || 'fa-graduation-cap';
     const subName = subjectNameMap[currentSubject] || subjectName;
 
@@ -2035,9 +2301,14 @@ document.body.style.overflow = 'auto';
         `;
         try {
             await Promise.race([
-                Promise.all([ loadScheduleFromFirebase('physics'), loadScheduleFromFirebase('science'), loadScheduleFromFirebase('islamic') ]),
-                new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000))
-            ]);
+    Promise.all([ 
+        loadScheduleFromFirebase('physics'), 
+        loadScheduleFromFirebase('science'), 
+        loadScheduleFromFirebase('islamic'),
+        loadScheduleFromFirebase('arabic') 
+    ]),
+    new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000))
+]);
         } catch(err) {
             console.error("Firebase error", err);
             document.getElementById('appContainer').innerHTML = `
@@ -2117,23 +2388,24 @@ document.body.style.overflow = 'auto';
         }
     }
     function showSubjectSelectionScreen() {
-        currentSchedule=[]; allSubTasks=[];
-        document.getElementById('appContainer').innerHTML = `
-            <div class="hero-area" style="justify-content:center;"><div class="logo-title"><h1><i class="fas fa-graduation-cap"></i> اختر خطتك الدراسية</h1></div></div>
-            <div style="display:flex; flex-wrap:wrap; gap:2rem; justify-content:center; margin:3rem 1rem;">
-                <div class="subject-card" data-subject="physics" style="background:linear-gradient(145deg, #1b5e2a, #0b3b1a); border-radius:2rem; padding:2rem; width:260px; text-align:center; cursor:pointer; color:white;"><i class="fas fa-atom" style="font-size:4rem;"></i><h2>الفيزياء</h2><p>خطة مكثفة 10 أيام</p></div>
-                <div class="subject-card" data-subject="science" style="background:linear-gradient(145deg, #b85c1a, #7e3a0b); border-radius:2rem; padding:2rem; width:260px; text-align:center; cursor:pointer; color:white;"><i class="fas fa-dna" style="font-size:4rem;"></i><h2>العلوم</h2><p>خطة مكثفة 3 أيام</p></div>
-                <div class="subject-card" data-subject="islamic" style="background:linear-gradient(145deg, #1a3a6b, #0d2547); border-radius:2rem; padding:2rem; width:260px; text-align:center; cursor:pointer; color:white;"><i class="fas fa-mosque" style="font-size:4rem;"></i><h2>الاسلامية</h2><p>خطة مكثفة 4 أيام</p></div>
-            </div>
-        `;
-        document.querySelectorAll('.subject-card').forEach(card=>{
-            card.addEventListener('click', async ()=>{
-                playSound('select');
-                const subject = card.dataset.subject;
-                await initializeStudentWithSubject(subject);
-            });
+    currentSchedule=[]; allSubTasks=[];
+    document.getElementById('appContainer').innerHTML = `
+        <div class="hero-area" style="justify-content:center;"><div class="logo-title"><h1><i class="fas fa-graduation-cap"></i> اختر المادة الدراسية</h1></div></div>
+        <div style="display:flex; flex-wrap:wrap; gap:2rem; justify-content:center; margin:3rem 1rem;">
+            <div class="subject-card" data-subject="physics" style="background:linear-gradient(145deg, #1b5e2a, #0b3b1a); border-radius:2rem; padding:2rem; width:260px; text-align:center; cursor:pointer; color:white;"><i class="fas fa-atom" style="font-size:4rem;"></i><h2>الفيزياء</h2><p>خطة 10 أيام</p></div>
+            <div class="subject-card" data-subject="science" style="background:linear-gradient(145deg, #b85c1a, #7e3a0b); border-radius:2rem; padding:2rem; width:260px; text-align:center; cursor:pointer; color:white;"><i class="fas fa-dna" style="font-size:4rem;"></i><h2>العلوم</h2><p>خطة 3 أيام</p></div>
+            <div class="subject-card" data-subject="islamic" style="background:linear-gradient(145deg, #1a3a6b, #0d2547); border-radius:2rem; padding:2rem; width:260px; text-align:center; cursor:pointer; color:white;"><i class="fas fa-mosque" style="font-size:4rem;"></i><h2>التربية الإسلامية</h2><p>خطة 4 أيام</p></div>
+            <div class="subject-card" data-subject="arabic" style="background:linear-gradient(145deg, #8e6b1f, #5c4512); border-radius:2rem; padding:2rem; width:260px; text-align:center; cursor:pointer; color:white;"><i class="fas fa-book-open" style="font-size:4rem;"></i><h2>اللغة العربية</h2><p>خطة 4 أيام</p></div>
+        </div>
+    `;
+    document.querySelectorAll('.subject-card').forEach(card=>{
+        card.addEventListener('click', async ()=>{
+            playSound('select');
+            const subject = card.dataset.subject;
+            await initializeStudentWithSubject(subject);
         });
-    }
+    });
+}
     function createParticlesOnGender(e, element) {
         const rect = element.getBoundingClientRect();
         const centerX = rect.left+rect.width/2; const centerY = rect.top+rect.height/2;
